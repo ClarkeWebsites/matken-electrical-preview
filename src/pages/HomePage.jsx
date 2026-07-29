@@ -6,8 +6,8 @@ import {
   ClipboardText,
   HardHat,
   House,
+  MapTrifold,
   Plug,
-  Receipt,
   Sun,
   Wrench,
 } from "@phosphor-icons/react";
@@ -34,8 +34,31 @@ let blueprintModulePromise;
 const loadProjectBlueprint = () => {
   blueprintModulePromise ??= import(
     "../components/ProjectBlueprint.jsx"
-  );
+  ).catch((error) => {
+    blueprintModulePromise = undefined;
+    throw error;
+  });
   return blueprintModulePromise;
+};
+
+const warmProjectBlueprint = () => {
+  void loadProjectBlueprint().catch(() => undefined);
+};
+
+const warmPlannerPage = () => {
+  void import("./PlannerPage.jsx").catch(() => undefined);
+};
+
+const warmRequestPage = () => {
+  void import("./RequestPage.jsx").catch(() => undefined);
+};
+
+const focusProjectBlueprintEntry = () => {
+  window.requestAnimationFrame(() => {
+    document
+      .querySelector("#project-blueprint .blueprint-panel-launch button")
+      ?.focus({ preventScroll: true });
+  });
 };
 
 const LazyProjectBlueprint = lazy(() =>
@@ -102,8 +125,9 @@ function BlueprintExperience() {
         <button
           className="button button-sun"
           type="button"
-          onPointerEnter={loadProjectBlueprint}
-          onFocus={loadProjectBlueprint}
+          onPointerEnter={warmProjectBlueprint}
+          onPointerDown={warmProjectBlueprint}
+          onFocus={warmProjectBlueprint}
           onClick={() => setStarted(true)}
         >
           Start my blueprint
@@ -184,7 +208,27 @@ export function HomePage() {
           </div>
         </div>
         <div className="shell hero-rail" aria-label="Quick actions">
-          <Link to="/planner">
+          <a
+            href="#project-blueprint"
+            aria-controls="project-blueprint"
+            onPointerEnter={warmProjectBlueprint}
+            onPointerDown={warmProjectBlueprint}
+            onFocus={warmProjectBlueprint}
+            onClick={focusProjectBlueprintEntry}
+          >
+            <MapTrifold size={21} aria-hidden="true" />
+            <span>
+              <strong>Build my Project Blueprint</strong>
+              Create a private starting brief
+            </span>
+            <ArrowRight size={19} aria-hidden="true" />
+          </a>
+          <Link
+            to="/planner"
+            onPointerEnter={warmPlannerPage}
+            onPointerDown={warmPlannerPage}
+            onFocus={warmPlannerPage}
+          >
             <Sun size={21} aria-hidden="true" />
             <span>
               <strong>Explore solar readiness</strong>
@@ -192,19 +236,16 @@ export function HomePage() {
             </span>
             <ArrowRight size={19} aria-hidden="true" />
           </Link>
-          <Link to="/request">
+          <Link
+            to="/request"
+            onPointerEnter={warmRequestPage}
+            onPointerDown={warmRequestPage}
+            onFocus={warmRequestPage}
+          >
             <ClipboardText size={21} aria-hidden="true" />
             <span>
               <strong>Organize a service request</strong>
               Capture the details before you call
-            </span>
-            <ArrowRight size={19} aria-hidden="true" />
-          </Link>
-          <Link to="/pay-invoice">
-            <Receipt size={21} aria-hidden="true" />
-            <span>
-              <strong>Pay an invoice</strong>
-              Secure provider connection is being prepared
             </span>
             <ArrowRight size={19} aria-hidden="true" />
           </Link>

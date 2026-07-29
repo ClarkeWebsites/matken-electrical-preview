@@ -18,7 +18,7 @@ import {
   projectBlueprintGoals,
   requestPropertyTypes,
   requestTimings,
-} from "../components/ProjectBlueprint.jsx";
+} from "../lib/projectBlueprintModel.js";
 import {
   business,
   essentialLoadItems,
@@ -657,7 +657,8 @@ export function RequestPage() {
                       </p>
                       <small>
                         Review or change every item and choose the parish.
-                        Nothing has been sent to Matken.
+                        This website has not sent these Blueprint project
+                        answers to Matken.
                       </small>
                     </div>
                   </div>
