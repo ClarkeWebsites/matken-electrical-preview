@@ -1,5 +1,6 @@
 import { Component } from "react";
 import { ArrowClockwise, House, WarningCircle } from "@phosphor-icons/react";
+import { Link } from "react-router";
 
 export function RouteLoadingState() {
   return (
@@ -48,10 +49,10 @@ export class AppErrorBoundary extends Component {
               <ArrowClockwise size={18} weight="bold" aria-hidden="true" />
               Reload page
             </button>
-            <a className="button button-outline" href="/">
+            <Link className="button button-outline" to="/">
               <House size={18} weight="bold" aria-hidden="true" />
               Return home
-            </a>
+            </Link>
           </div>
         </div>
       </section>

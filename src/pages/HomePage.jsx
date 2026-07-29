@@ -13,6 +13,7 @@ import {
 } from "@phosphor-icons/react";
 import { Link } from "react-router";
 import { OptimizedImage } from "../components/OptimizedImage.jsx";
+import { ApprovedProjectStories } from "../components/ApprovedProjectStories.jsx";
 import {
   business,
   faqs,
@@ -407,6 +408,8 @@ export function HomePage() {
           </div>
         </div>
       </section>
+
+      <ApprovedProjectStories />
 
       <section className="section process-section">
         <div className="shell">

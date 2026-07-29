@@ -9,6 +9,24 @@ All photography in this prototype is representative editorial imagery. It must n
 - Purpose: preserve the existing public MATKEN wordmark while the owner supplies an original transparent/vector logo.
 - Production replacement required: original SVG, PDF, EPS, or high-resolution transparent PNG from Matken.
 
+## Connected Conduit M prototype system
+
+- Directory: `public/assets/brand/`
+- Concept source: generated for this Matken redesign with OpenAI ImageGen from
+  the verified public wordmark reference and the owner-directed Connected
+  Conduit M brief. The full-resolution concept remains in the local,
+  intentionally ignored design-reference folder rather than the public
+  preview repository.
+- Production vectors: authored specifically for this prototype from the
+  selected concept using Matken Navy `#061831`, Connection Red `#CF2630`, and
+  the locally bundled Manrope typeface.
+- Raster derivatives: generated locally from the authored SVGs with
+  `scripts/render-brand-assets.mjs`.
+- Approval status: prototype only. Matken owner approval, trademark clearance,
+  physical vendor proofs, and production signoff remain required.
+- Yellow is intentionally excluded from the primary logo and remains reserved
+  for website interaction accents.
+
 ## Editorial photography
 
 ### Solar hero

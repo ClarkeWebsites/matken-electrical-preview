@@ -5,6 +5,7 @@ import {
   Calculator,
   ChartLineUp,
   Copy,
+  FileText,
   Info,
   LinkSimple,
   Lightning,
@@ -17,17 +18,25 @@ import { essentialLoadItems } from "../data/site.js";
 import {
   activePlannerScenario,
   boundedPlannerInteger,
-  createInitialPlannerScenarioState,
+  buildOutageRoutine,
+  calculateBillHistoryStats,
   formatPlannerValue,
+  MAX_BILL_HISTORY_MONTHS,
   MAX_PLANNER_SCENARIOS,
   nextPlannerScenarioId,
   PANEL_WATT_OPTIONS,
-  plannerInputsFromSearch,
   plannerPayloadForScenario,
   plannerScenarioReducer,
+  plannerScenarioStateFromSearch,
+  plannerSearchParamsForState,
   plannerTransferForScenario,
   selectedLoadItemsFromEntries,
 } from "../lib/plannerModel.js";
+import {
+  appSearchFromLocation,
+  createAppShareUrl,
+} from "../lib/appUrl.js";
+import "../planner-upgrades.css";
 
 const signedDifference = (value, baseline, unit) => {
   const difference = value - baseline;
@@ -42,12 +51,13 @@ export function PlannerPage() {
     plannerScenarioReducer,
     undefined,
     () =>
-      createInitialPlannerScenarioState(
-        plannerInputsFromSearch(
-          typeof window === "undefined" ? "" : window.location.search,
-        ),
+      plannerScenarioStateFromSearch(
+        typeof window === "undefined"
+          ? ""
+          : appSearchFromLocation(window.location),
       ),
   );
+  const [billStatus, setBillStatus] = useState("");
   const [loadStatus, setLoadStatus] = useState("");
   const [linkStatus, setLinkStatus] = useState("");
   const [scenarioStatus, setScenarioStatus] = useState("");
@@ -68,14 +78,26 @@ export function PlannerPage() {
   const loadPlanSource = activeScenario.loadPlanSource;
 
   const selectedLoadItems = useMemo(
-    () => selectedLoadItemsFromEntries(loadEntries),
-    [loadEntries],
+    () => selectedLoadItemsFromEntries(loadEntries, outageHours),
+    [loadEntries, outageHours],
+  );
+  const outageRoutine = useMemo(
+    () => buildOutageRoutine(selectedLoadItems, outageHours),
+    [selectedLoadItems, outageHours],
+  );
+  const billStats = useMemo(
+    () =>
+      calculateBillHistoryStats(
+        activeScenario.billHistory,
+        panelWatts,
+      ),
+    [activeScenario.billHistory, panelWatts],
   );
   const selectedLoadWatts = selectedLoadItems.reduce(
     (total, item) => total + item.subtotalWatts,
     0,
   );
-  const selectedLoadKw = selectedLoadWatts / 1000;
+  const routinePeakKw = outageRoutine.peakWatts / 1000;
   const comparisonPlans = useMemo(
     () =>
       comparisonState.scenarios.map((scenario) => ({
@@ -93,29 +115,49 @@ export function PlannerPage() {
     setLinkStatus("");
   };
 
+  const setBillEntry = (index, value) => {
+    dispatch({ type: "SET_BILL_ENTRY", index, value });
+    setBillStatus("");
+    setLinkStatus("");
+  };
+
+  const applyBillAverage = () => {
+    if (!billStats.ready) {
+      setBillStatus(
+        `Add at least ${billStats.requiredCount} monthly kWh totals before using an average.`,
+      );
+      return;
+    }
+    dispatch({ type: "APPLY_BILL_AVERAGE" });
+    setBillStatus(
+      `${formatPlannerValue(billStats.averageKwh, 0)} kWh average applied to ${activeScenario.label}. The low-to-high range remains visible for planning context.`,
+    );
+    setLinkStatus("");
+  };
+
   const applySelectedLoad = () => {
     if (!selectedLoadItems.length) {
       setLoadStatus("Select at least one essential load before applying.");
       return;
     }
-    if (selectedLoadKw > 10) {
+    if (routinePeakKw > 10) {
       setLoadStatus(
-        "This running-load estimate is above the 10 kW planning range. Reduce the list or use a professional load review.",
+        "This routine peak is above the 10 kW planning range. Reduce the list, stagger more loads, or use a professional load review.",
       );
       return;
     }
 
-    const appliedKw = Math.max(0.2, Math.ceil(selectedLoadKw * 10) / 10);
+    const appliedKw = Math.max(0.2, Math.ceil(routinePeakKw * 10) / 10);
     const minimumNote =
-      selectedLoadKw < 0.2
+      routinePeakKw < 0.2
         ? " The planner minimum of 0.2 kW was applied."
         : "";
     dispatch({ type: "APPLY_SELECTED_LOAD", essentialKw: appliedKw });
     setLoadStatus(
-      `Essential load updated to ${formatPlannerValue(appliedKw)} kW from ${selectedLoadItems.length} selected ${selectedLoadItems.length === 1 ? "load" : "loads"}.${minimumNote}`,
+      `Essential load updated to ${formatPlannerValue(appliedKw)} kW from ${selectedLoadItems.length} selected ${selectedLoadItems.length === 1 ? "load" : "loads"} using the illustrated routine peak.${minimumNote}`,
     );
     setScenarioStatus(
-      `${activeScenario.label} now uses the selected running-load total.`,
+      `${activeScenario.label} now uses the illustrated routine peak.`,
     );
   };
 
@@ -187,21 +229,20 @@ export function PlannerPage() {
   };
 
   const copyPlanLink = async () => {
-    const parameters = new URLSearchParams({
-      monthly: String(monthlyKwh),
-      essential: String(essentialKw),
-      hours: String(outageHours),
-      panel: String(panelWatts),
-    });
+    const parameters = plannerSearchParamsForState(comparisonState);
     const relativeUrl = `/planner?${parameters}`;
-    const shareUrl = new URL(relativeUrl, window.location.origin).href;
+    const shareUrl = createAppShareUrl(relativeUrl, window.location, {
+      hashRouting:
+        import.meta.env.VITE_GITHUB_PAGES === "true" ||
+        window.location.hash.startsWith("#/"),
+    });
 
     navigate(relativeUrl, { replace: true });
 
     try {
       await navigator.clipboard.writeText(shareUrl);
       setLinkStatus(
-        `Plan link copied for ${activeScenario.label}. It contains planning totals only—not comparisons, appliance, or contact details.`,
+        `Plan link copied as a private resume link for ${activeScenario.label}. It contains the planner scenarios, bill kWh entries, and appliance routine—but no contact details. It is unlisted, not access-controlled, so share it intentionally.`,
       );
     } catch {
       setLinkStatus(
@@ -234,8 +275,9 @@ export function PlannerPage() {
               <h2>Change one priority. See the trade-off.</h2>
               <p id="planner-comparison-note">
                 Clone the active plan, then change backup time, essential load,
-                monthly use, or panel size. Comparisons stay in this visit and
-                are not sent anywhere.
+                monthly use, or panel size. Comparisons stay in this browser
+                unless you deliberately copy a resume link or continue with a
+                request.
               </p>
             </div>
             <fieldset aria-describedby="planner-comparison-note">
@@ -326,6 +368,155 @@ export function PlannerPage() {
               </small>
             </label>
 
+            <details className="essential-load-builder bill-history-builder">
+              <summary>
+                <ChartLineUp size={22} weight="duotone" aria-hidden="true" />
+                <span>
+                  <strong>Compare several monthly bills</strong>
+                  <small>Optional 3–12 month planning range</small>
+                </span>
+              </summary>
+              <fieldset>
+                <legend>Monthly kWh history</legend>
+                <p className="load-builder-intro">
+                  Enter only the kWh total from each bill—not a dollar amount,
+                  account number, name, address, or meter number. Three or more
+                  months helps expose a low-to-high planning range.
+                </p>
+                <div className="bill-history-grid">
+                  {activeScenario.billHistory.map((value, index) => (
+                    <div className="bill-history-entry" key={index}>
+                      <label htmlFor={`bill-history-${index}`}>
+                        Month {index + 1}
+                        <span>
+                          <input
+                            id={`bill-history-${index}`}
+                            type="number"
+                            min="30"
+                            max="3000"
+                            step="1"
+                            inputMode="numeric"
+                            value={value}
+                            placeholder="kWh"
+                            onChange={(event) =>
+                              setBillEntry(index, event.target.value)
+                            }
+                            onBlur={() => {
+                              if (value === "") return;
+                              const normalized = boundedPlannerInteger(
+                                value,
+                                450,
+                                30,
+                                3000,
+                              );
+                              if (String(normalized) !== String(value)) {
+                                setBillEntry(index, normalized);
+                              }
+                            }}
+                          />
+                          <small>kWh</small>
+                        </span>
+                      </label>
+                      {activeScenario.billHistory.length > 3 ? (
+                        <button
+                          type="button"
+                          aria-label={`Remove month ${index + 1}`}
+                          onClick={() => {
+                            dispatch({ type: "REMOVE_BILL_ENTRY", index });
+                            setBillStatus("");
+                            setLinkStatus("");
+                          }}
+                        >
+                          Remove
+                        </button>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+                <div className="bill-history-actions">
+                  <button
+                    className="button button-outline button-compact"
+                    type="button"
+                    disabled={
+                      activeScenario.billHistory.length >=
+                      MAX_BILL_HISTORY_MONTHS
+                    }
+                    onClick={() => {
+                      dispatch({ type: "ADD_BILL_ENTRY" });
+                      setBillStatus("");
+                      setLinkStatus("");
+                    }}
+                  >
+                    {activeScenario.billHistory.length >=
+                    MAX_BILL_HISTORY_MONTHS
+                      ? "12-month limit reached"
+                      : "Add another month"}
+                  </button>
+                  <small>
+                    {billStats.count} usable{" "}
+                    {billStats.count === 1 ? "month" : "months"} entered
+                  </small>
+                </div>
+                {billStats.ready ? (
+                  <div className="bill-history-result">
+                    <div>
+                      <span>Monthly use range</span>
+                      <strong>
+                        {formatPlannerValue(billStats.minKwh, 0)}–
+                        {formatPlannerValue(billStats.maxKwh, 0)} kWh
+                      </strong>
+                      <small>
+                        Average {formatPlannerValue(billStats.averageKwh, 0)}{" "}
+                        kWh from {billStats.count} months
+                      </small>
+                    </div>
+                    <div>
+                      <span>Educational solar range</span>
+                      <strong>
+                        {formatPlannerValue(
+                          billStats.solarRange.min.startingSolarKw,
+                        )}
+                        –
+                        {formatPlannerValue(
+                          billStats.solarRange.max.startingSolarKw,
+                        )}{" "}
+                        kW
+                      </strong>
+                      <small>
+                        Approx. {billStats.solarRange.min.panelCount}–
+                        {billStats.solarRange.max.panelCount} × {panelWatts} W
+                      </small>
+                    </div>
+                    <button
+                      className="button button-dark button-compact"
+                      type="button"
+                      onClick={applyBillAverage}
+                    >
+                      Use {formatPlannerValue(billStats.averageKwh, 0)} kWh
+                      average
+                    </button>
+                  </div>
+                ) : (
+                  <p className="bill-history-prompt">
+                    Add {billStats.requiredCount - billStats.count} more usable{" "}
+                    {billStats.requiredCount - billStats.count === 1
+                      ? "month"
+                      : "months"}{" "}
+                    to calculate the range.
+                  </p>
+                )}
+                <p className="load-builder-limit">
+                  These values stay in this browser unless you deliberately
+                  copy a resume link or continue with the active plan.
+                </p>
+                {billStatus ? (
+                  <p className="load-builder-status applied" role="status">
+                    {billStatus}
+                  </p>
+                ) : null}
+              </fieldset>
+            </details>
+
             <label className="control-group">
               <span>
                 Essential simultaneous load
@@ -369,13 +560,16 @@ export function PlannerPage() {
                 <p className="load-builder-intro">
                   Select only what should run at the same time. Starting values
                   are editable planning assumptions—not equipment
-                  specifications.
+                  specifications. Add when and how long each load is needed to
+                  explore a staggered outage routine.
                 </p>
                 <div className="load-builder-list">
                   {essentialLoadItems.map((item) => {
                     const entry = loadEntries[item.id];
                     const quantityId = `load-${item.id}-quantity`;
                     const wattsId = `load-${item.id}-watts`;
+                    const hoursId = `load-${item.id}-hours`;
+                    const startId = `load-${item.id}-start`;
 
                     return (
                       <div className="load-builder-row" key={item.id}>
@@ -383,11 +577,15 @@ export function PlannerPage() {
                           <input
                             type="checkbox"
                             checked={entry.selected}
-                            onChange={(event) =>
+                            onChange={(event) => {
+                              const selected = event.target.checked;
                               updateLoadEntry(item.id, {
-                                selected: event.target.checked,
-                              })
-                            }
+                                selected,
+                                ...(selected
+                                  ? { hours: outageHours, startHour: 0 }
+                                  : {}),
+                              });
+                            }}
                           />
                           <span>
                             <strong>{item.label}</strong>
@@ -459,6 +657,68 @@ export function PlannerPage() {
                               }}
                             />
                           </label>
+                          <label htmlFor={hoursId}>
+                            Hours needed
+                            <input
+                              id={hoursId}
+                              aria-label={`Hours needed for ${item.label}`}
+                              type="number"
+                              min="1"
+                              max={outageHours - entry.startHour}
+                              step="1"
+                              inputMode="numeric"
+                              disabled={!entry.selected}
+                              value={entry.hours}
+                              onChange={(event) =>
+                                updateLoadEntry(item.id, {
+                                  hours: event.target.value,
+                                })
+                              }
+                              onBlur={() => {
+                                const normalized = boundedPlannerInteger(
+                                  entry.hours,
+                                  outageHours - entry.startHour,
+                                  1,
+                                  outageHours - entry.startHour,
+                                );
+                                if (String(normalized) !== String(entry.hours)) {
+                                  updateLoadEntry(item.id, {
+                                    hours: normalized,
+                                  });
+                                }
+                              }}
+                            />
+                          </label>
+                          <label htmlFor={startId}>
+                            Start after
+                            <select
+                              id={startId}
+                              aria-label={`Start time for ${item.label}`}
+                              disabled={!entry.selected}
+                              value={entry.startHour}
+                              onChange={(event) => {
+                                const startHour = Number(event.target.value);
+                                updateLoadEntry(item.id, {
+                                  startHour,
+                                  hours: Math.min(
+                                    Number(entry.hours) || outageHours,
+                                    outageHours - startHour,
+                                  ),
+                                });
+                              }}
+                            >
+                              {Array.from(
+                                { length: outageHours },
+                                (_, hour) => (
+                                  <option key={hour} value={hour}>
+                                    {hour === 0
+                                      ? "Outage start"
+                                      : `${hour} ${hour === 1 ? "hour" : "hours"}`}
+                                  </option>
+                                ),
+                              )}
+                            </select>
+                          </label>
                         </div>
                       </div>
                     );
@@ -466,15 +726,22 @@ export function PlannerPage() {
                 </div>
                 <div className="load-builder-total">
                   <div>
-                    <span>Selected running load</span>
+                    <span>Illustrated routine peak</span>
                     <strong>
-                      {selectedLoadWatts.toLocaleString("en-JM")} W ·{" "}
+                      {outageRoutine.peakWatts.toLocaleString("en-JM")} W ·{" "}
                       {formatPlannerValue(
-                        selectedLoadKw,
-                        selectedLoadKw < 1 ? 2 : 1,
+                        routinePeakKw,
+                        routinePeakKw < 1 ? 2 : 1,
                       )}{" "}
                       kW
                     </strong>
+                    {selectedLoadItems.length ? (
+                      <small>
+                        {formatPlannerValue(outageRoutine.energyKwh, 2)} kWh
+                        scheduled · {selectedLoadWatts.toLocaleString("en-JM")} W
+                        if all selected loads overlap
+                      </small>
+                    ) : null}
                   </div>
                   <button
                     className="button button-dark button-compact"
@@ -485,9 +752,75 @@ export function PlannerPage() {
                     Use this load
                   </button>
                 </div>
+                {selectedLoadItems.length ? (
+                  <section
+                    className="outage-routine"
+                    aria-labelledby="outage-routine-title"
+                  >
+                    <div className="outage-routine-heading">
+                      <div>
+                        <span>Educational outage routine</span>
+                        <h3 id="outage-routine-title">
+                          See when the selected loads overlap.
+                        </h3>
+                      </div>
+                      <strong>
+                        {outageRoutine.activeHours}/{outageRoutine.hours} active
+                        hours
+                      </strong>
+                    </div>
+                    <ol
+                      className="outage-routine-timeline"
+                      aria-label="Illustrative outage routine by time block"
+                    >
+                      {outageRoutine.segments.map((segment) => (
+                        <li
+                          key={`${segment.startHour}-${segment.endHour}-${segment.signature}`}
+                          className={
+                            segment.runningWatts ? "active" : "idle"
+                          }
+                          style={{
+                            "--routine-segment-grow":
+                              segment.endHour - segment.startHour,
+                          }}
+                        >
+                          <span>
+                            Hour {segment.startHour}–{segment.endHour}
+                          </span>
+                          <strong>
+                            {segment.runningWatts
+                              ? `${segment.runningWatts.toLocaleString("en-JM")} W`
+                              : "Reserve window"}
+                          </strong>
+                          <small>
+                            {segment.activeItems.length
+                              ? segment.activeItems
+                                  .map((load) => load.label)
+                                  .join(", ")
+                              : "No selected loads scheduled"}
+                          </small>
+                        </li>
+                      ))}
+                    </ol>
+                    <ul className="outage-routine-loads">
+                      {selectedLoadItems.map((load) => (
+                        <li key={load.id}>
+                          <strong>{load.label}</strong>
+                          <span>
+                            starts after {load.startHour} h · runs {load.hours} h
+                            · {formatPlannerValue(load.energyKwh, 2)} kWh
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ) : null}
                 <p className="load-builder-limit">
-                  Running demand only. Motor or compressor start-up, duty
-                  cycles, power factor, and load sequencing are not modeled.
+                  Continuous hourly blocks only. Motor or compressor start-up,
+                  cycling, power factor, recharge losses, automatic controls,
+                  and real-world operating behaviour are not modeled. The main
+                  battery range still uses the routine peak across the full
+                  target duration as a conservative conversation starter.
                 </p>
                 {loadStatus ? (
                   <p
@@ -591,6 +924,28 @@ export function PlannerPage() {
               </div>
             </div>
 
+            {billStats.ready ? (
+              <div className="result-planning-range">
+                <span>{billStats.count}-month usage context</span>
+                <strong>
+                  {formatPlannerValue(billStats.minKwh, 0)}–
+                  {formatPlannerValue(billStats.maxKwh, 0)} kWh per month
+                </strong>
+                <small>
+                  The multi-bill history suggests an educational starting solar
+                  range of{" "}
+                  {formatPlannerValue(
+                    billStats.solarRange.min.startingSolarKw,
+                  )}
+                  –
+                  {formatPlannerValue(
+                    billStats.solarRange.max.startingSolarKw,
+                  )}{" "}
+                  kW before site-specific adjustments.
+                </small>
+              </div>
+            ) : null}
+
             <div className="estimate-note">
               <Info size={21} weight="fill" aria-hidden="true" />
               <p>
@@ -610,13 +965,17 @@ export function PlannerPage() {
                       <strong>
                         {item.quantity} × {item.label}
                       </strong>
-                      <small>{item.watts.toLocaleString("en-JM")} W each</small>
+                      <small>
+                        {item.watts.toLocaleString("en-JM")} W each · hour{" "}
+                        {item.startHour} for {item.hours} h
+                      </small>
                     </li>
                   ))}
                 </ul>
                 <p>
-                  {selectedLoadWatts.toLocaleString("en-JM")} W calculated
-                  running load · {formatPlannerValue(essentialKw)} kW applied
+                  {outageRoutine.peakWatts.toLocaleString("en-JM")} W routine
+                  peak · {formatPlannerValue(outageRoutine.energyKwh, 2)} kWh
+                  scheduled · {formatPlannerValue(essentialKw)} kW applied
                 </p>
               </div>
             ) : null}
@@ -641,11 +1000,20 @@ export function PlannerPage() {
               <button
                 className="button button-outline"
                 type="button"
+                aria-label="Copy plan link"
                 onClick={copyPlanLink}
               >
                 <LinkSimple size={18} aria-hidden="true" />
-                Copy plan link
+                Copy private resume link
               </button>
+              <Link
+                className="button button-outline"
+                to="/project-pack"
+                state={{ planner: activeTransfer }}
+              >
+                <FileText size={18} aria-hidden="true" />
+                Add to Project Pack
+              </Link>
             </div>
             {linkStatus ? (
               <p className="planner-share-status" role="status">

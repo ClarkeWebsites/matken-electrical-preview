@@ -2,8 +2,23 @@
   "name": "Matken Electrical",
   "short_name": "Matken",
   "description": "Electrical, solar, and construction project pathways in Jamaica.",
-  "start_url": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#061831"
+  "theme_color": "#061831",
+  "icons": [
+    {
+      "src": "assets/brand/matken-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/brand/matken-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
 }

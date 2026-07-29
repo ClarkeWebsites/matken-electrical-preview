@@ -22,6 +22,7 @@ import {
   resourceArticles,
   services,
 } from "../data/site.js";
+import { publicAssetUrl } from "../lib/appUrl.js";
 
 const SiteSearchDialog = lazy(() =>
   import("./SiteSearchDialog.jsx").then((module) => ({
@@ -77,9 +78,17 @@ function ScrollToTop() {
           "Request Service | Matken Electrical",
           "Organize an electrical, solar, or construction project request.",
         ],
+        "/project-pack": [
+          "Project Pack | Matken Electrical",
+          "Combine private planning details into a polished Matken print and download pack.",
+        ],
         "/pay-invoice": [
           "Pay an Invoice | Matken Electrical",
           "Request secure access to a provider-hosted Matken invoice payment page.",
+        ],
+        "/project-status": [
+          "Project Status | Matken Electrical",
+          "Request a one-time private link to view an authoritative Matken project status.",
         ],
         "/resources": [
           "Planning Resources | Matken Electrical",
@@ -288,19 +297,22 @@ export function SiteLayout() {
         <div className="utility-bar">
           <div className="shell utility-inner">
             <span>Electrical · Solar · Construction</span>
-            <a href={`tel:${business.phoneHref}`}>
-              <Phone size={15} weight="fill" aria-hidden="true" />
-              {business.phoneDisplay}
-            </a>
+            <div className="utility-actions">
+              <Link to="/project-status">Track a project</Link>
+              <a href={`tel:${business.phoneHref}`}>
+                <Phone size={15} weight="fill" aria-hidden="true" />
+                {business.phoneDisplay}
+              </a>
+            </div>
           </div>
         </div>
         <div className="shell header-inner">
           <Link className="brand" to="/" aria-label="Matken home">
             <img
-              src="/assets/matken-logo-source.png"
-              alt="Matken"
-              width="360"
-              height="86"
+              src={publicAssetUrl("/assets/brand/matken-logo-wordmark.svg")}
+              alt="Matken Electrical, Solar and Construction"
+              width="390"
+              height="96"
             />
           </Link>
           <nav className="desktop-nav" aria-label="Primary navigation">
@@ -383,6 +395,10 @@ export function SiteLayout() {
                 Pay an invoice
                 <ArrowRight size={18} aria-hidden="true" />
               </Link>
+              <Link to="/project-status">
+                Track a project
+                <ArrowRight size={18} aria-hidden="true" />
+              </Link>
               <a href={`tel:${business.phoneHref}`}>
                 Call {business.phoneDisplay}
                 <Phone size={18} aria-hidden="true" />
@@ -424,10 +440,10 @@ export function SiteLayout() {
         <div className="shell footer-grid">
           <div className="footer-brand">
             <img
-              src="/assets/matken-logo-source.png"
-              alt="Matken"
-              width="360"
-              height="86"
+              src={publicAssetUrl("/assets/brand/matken-logo-reversed.svg")}
+              alt="Matken Electrical, Solar and Construction"
+              width="580"
+              height="112"
             />
             <p>
               Practical pathways for electrical, solar, and construction
@@ -442,15 +458,21 @@ export function SiteLayout() {
             <h2>Explore</h2>
             <Link to="/services">Services</Link>
             <Link to="/planner">Solar planner</Link>
+            <Link to="/project-pack">Project Pack</Link>
             <Link to="/resources">Resources</Link>
             <Link to="/about">About Matken</Link>
           </div>
           <div>
             <h2>Get started</h2>
             <Link to="/request">Request service</Link>
+            <Link to="/project-pack">Project Pack</Link>
+            <Link to="/project-status">Track a project</Link>
             <Link to="/pay-invoice">Pay an invoice</Link>
             <a href={`tel:${business.phoneHref}`}>Call Matken</a>
-            <a href="/assets/matken-contact.vcf" download>
+            <a
+              href={publicAssetUrl("/assets/matken-contact.vcf")}
+              download
+            >
               Save Matken contact
             </a>
           </div>

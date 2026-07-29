@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 260" role="img" aria-labelledby="title desc">
+  <title id="title">Matken uniform patch</title>
+  <desc id="desc">Circular navy Matken uniform patch with the connected conduit M</desc>
+  <defs>
+    <style>
+      @font-face{font-family:Manrope;src:url("../fonts/manrope-variable.woff2") format("woff2");font-weight:200 800;font-style:normal}
+      .label{font-family:Manrope,Arial,sans-serif;font-size:23px;font-weight:800;letter-spacing:4px}
+    </style>
+  </defs>
+  <circle cx="130" cy="130" r="122" fill="#061831"/>
+  <circle cx="130" cy="130" r="112" fill="none" stroke="#FFFFFF" stroke-opacity=".42" stroke-width="2"/>
+  <g transform="translate(82 50)">
+    <path d="M15 105V16L48 50L81 16V105" fill="none" stroke="#FFFFFF" stroke-width="14" stroke-linecap="square" stroke-linejoin="bevel"/>
+    <rect x="41.5" y="43.5" width="13" height="13" rx="1.5" fill="#CF2630"/>
+  </g>
+  <text class="label" x="130" y="202" fill="#FFFFFF" text-anchor="middle">MATKEN</text>
+</svg>

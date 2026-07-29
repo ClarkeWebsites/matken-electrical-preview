@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 150" role="img" aria-labelledby="title desc">
+  <title id="title">Matken invoice header</title>
+  <desc id="desc">Matken logo and verified phone number arranged for an invoice header</desc>
+  <defs>
+    <style>
+      @font-face{font-family:Manrope;src:url("../fonts/manrope-variable.woff2") format("woff2");font-weight:200 800;font-style:normal}
+      .wordmark{font-family:Manrope,Arial,sans-serif;font-size:68px;font-weight:800;letter-spacing:-2.8px}
+      .descriptor{font-family:Manrope,Arial,sans-serif;font-size:11px;font-weight:750;letter-spacing:2.5px}
+      .contact{font-family:Manrope,Arial,sans-serif;font-size:19px;font-weight:700}
+    </style>
+  </defs>
+  <g transform="translate(6 16) scale(1.15)">
+    <path d="M15 82V16L48 50L81 16V82" fill="none" stroke="#061831" stroke-width="14" stroke-linecap="square" stroke-linejoin="bevel"/>
+    <rect x="41.5" y="43.5" width="13" height="13" rx="1.5" fill="#CF2630"/>
+  </g>
+  <text class="wordmark" x="130" y="81" fill="#061831">MATKEN</text>
+  <text class="descriptor" x="134" y="112" fill="#061831">ELECTRICAL · SOLAR · CONSTRUCTION</text>
+  <line x1="713" y1="29" x2="713" y2="121" stroke="#D7DEE7" stroke-width="2"/>
+  <text class="contact" x="750" y="68" fill="#061831">Jamaica</text>
+  <text class="contact" x="750" y="98" fill="#061831">(876) 568-2616</text>
+</svg>

@@ -274,6 +274,11 @@ export function PrivacyPage() {
             "The intended payment flow uses a private hosted page from an eligible payment provider. This website must not collect full card details, online-banking credentials, or one-time authentication codes.",
         },
         {
+          title: "Project status",
+          body:
+            "Without a configured project-status endpoint, no project record is searched and no verification message is sent. After activation, a protected server—not this public browser—must match the reference and contact route, issue a short-lived one-time link, and return only approved status fields.",
+        },
+        {
           title: "Marketing choices",
           body:
             "Consent to receive service-request follow-up is separate from optional consent to receive broader educational or promotional updates.",
@@ -308,6 +313,11 @@ export function TermsPage() {
           title: "Invoice payment",
           body:
             "Only a finalized invoice and verified hosted payment link from Matken’s selected billing provider can establish the amount due and payment status.",
+        },
+        {
+          title: "Project tracking",
+          body:
+            "Only a status returned through Matken’s protected project system is authoritative. Public form entries, planning results, elapsed time, and website copy do not advance a project or establish a schedule.",
         },
       ]}
     />

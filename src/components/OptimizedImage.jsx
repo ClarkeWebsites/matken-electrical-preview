@@ -1,3 +1,5 @@
+import { publicAssetUrl } from "../lib/appUrl.js";
+
 const imageVariants = Object.freeze({
   "/assets/matken-hero-solar.jpg": Object.freeze({
     width: 2000,
@@ -64,6 +66,7 @@ export function OptimizedImage({
   ...imageProps
 }) {
   const variant = imageVariants[src];
+  const resolvedSrc = publicAssetUrl(src);
   const loading = eager ? "eager" : "lazy";
   const fetchPriority = eager ? "high" : undefined;
 
@@ -71,7 +74,7 @@ export function OptimizedImage({
     return (
       <img
         {...imageProps}
-        src={src}
+        src={resolvedSrc}
         alt={alt}
         loading={loading}
         decoding="async"
@@ -81,7 +84,7 @@ export function OptimizedImage({
   }
 
   const srcSet = variant.sources
-    .map((source) => `${source.src} ${source.width}w`)
+    .map((source) => `${publicAssetUrl(source.src)} ${source.width}w`)
     .join(", ");
 
   return (
@@ -91,7 +94,7 @@ export function OptimizedImage({
       <source type="image/webp" srcSet={srcSet} sizes={sizes} />
       <img
         {...imageProps}
-        src={src}
+        src={resolvedSrc}
         alt={alt}
         width={variant.width}
         height={variant.height}

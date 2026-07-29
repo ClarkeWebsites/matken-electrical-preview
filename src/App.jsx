@@ -27,9 +27,17 @@ const PlannerPage = lazyNamed(
   () => import("./pages/PlannerPage.jsx"),
   "PlannerPage",
 );
+const ProjectPackPage = lazyNamed(
+  () => import("./pages/ProjectPackPage.jsx"),
+  "ProjectPackPage",
+);
 const RequestPage = lazyNamed(
   () => import("./pages/RequestPage.jsx"),
   "RequestPage",
+);
+const StatusPage = lazyNamed(
+  () => import("./pages/StatusPage.jsx"),
+  "StatusPage",
 );
 const AboutPage = lazyNamed(
   () => import("./pages/ContentPages.jsx"),
@@ -67,31 +75,123 @@ const ServicesOverviewPage = lazyNamed(
 const AppRouter =
   import.meta.env.VITE_GITHUB_PAGES === "true" ? HashRouter : BrowserRouter;
 
+function DeferredRoute({ children }) {
+  return <Suspense fallback={<RouteLoadingState />}>{children}</Suspense>;
+}
+
 export function App() {
   return (
     <AppRouter>
       <AppErrorBoundary>
-        <Suspense fallback={<RouteLoadingState />}>
-          <Routes>
-            <Route element={<SiteLayout />}>
-              <Route index element={<HomePage />} />
-              <Route path="services" element={<ServicesOverviewPage />} />
-              <Route path="services/:slug" element={<ServiceDetailPage />} />
-              <Route path="planner" element={<PlannerPage />} />
-              <Route path="request" element={<RequestPage />} />
-              <Route path="pay-invoice" element={<InvoicePage />} />
-              <Route path="resources" element={<ResourcesPage />} />
-              <Route
-                path="resources/:slug"
-                element={<ResourceArticlePage />}
-              />
-              <Route path="about" element={<AboutPage />} />
-              <Route path="privacy" element={<PrivacyPage />} />
-              <Route path="terms" element={<TermsPage />} />
-              <Route path="*" element={<NotFoundPage />} />
-            </Route>
-          </Routes>
-        </Suspense>
+        <Routes>
+          <Route element={<SiteLayout />}>
+            <Route index element={<HomePage />} />
+            <Route
+              path="services"
+              element={
+                <DeferredRoute>
+                  <ServicesOverviewPage />
+                </DeferredRoute>
+              }
+            />
+            <Route
+              path="services/:slug"
+              element={
+                <DeferredRoute>
+                  <ServiceDetailPage />
+                </DeferredRoute>
+              }
+            />
+            <Route
+              path="planner"
+              element={
+                <DeferredRoute>
+                  <PlannerPage />
+                </DeferredRoute>
+              }
+            />
+            <Route
+              path="request"
+              element={
+                <DeferredRoute>
+                  <RequestPage />
+                </DeferredRoute>
+              }
+            />
+            <Route
+              path="project-pack"
+              element={
+                <DeferredRoute>
+                  <ProjectPackPage />
+                </DeferredRoute>
+              }
+            />
+            <Route
+              path="pay-invoice"
+              element={
+                <DeferredRoute>
+                  <InvoicePage />
+                </DeferredRoute>
+              }
+            />
+            <Route
+              path="project-status"
+              element={
+                <DeferredRoute>
+                  <StatusPage />
+                </DeferredRoute>
+              }
+            />
+            <Route
+              path="resources"
+              element={
+                <DeferredRoute>
+                  <ResourcesPage />
+                </DeferredRoute>
+              }
+            />
+            <Route
+              path="resources/:slug"
+              element={
+                <DeferredRoute>
+                  <ResourceArticlePage />
+                </DeferredRoute>
+              }
+            />
+            <Route
+              path="about"
+              element={
+                <DeferredRoute>
+                  <AboutPage />
+                </DeferredRoute>
+              }
+            />
+            <Route
+              path="privacy"
+              element={
+                <DeferredRoute>
+                  <PrivacyPage />
+                </DeferredRoute>
+              }
+            />
+            <Route
+              path="terms"
+              element={
+                <DeferredRoute>
+                  <TermsPage />
+                </DeferredRoute>
+              }
+            />
+            <Route
+              path="*"
+              element={
+                <DeferredRoute>
+                  <NotFoundPage />
+                </DeferredRoute>
+              }
+            />
+          </Route>
+        </Routes>
       </AppErrorBoundary>
     </AppRouter>
   );

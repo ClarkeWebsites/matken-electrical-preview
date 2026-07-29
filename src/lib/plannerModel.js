@@ -15,6 +15,8 @@ export const PLANNER_LIMITS = Object.freeze({
 
 export const PANEL_WATT_OPTIONS = Object.freeze([400, 450, 500, 550]);
 export const MAX_PLANNER_SCENARIOS = 3;
+export const MIN_BILL_HISTORY_MONTHS = 3;
+export const MAX_BILL_HISTORY_MONTHS = 12;
 
 const scenarioIds = Object.freeze(["plan-a", "plan-b", "plan-c"]);
 const scenarioLabels = Object.freeze({
@@ -25,7 +27,11 @@ const scenarioLabels = Object.freeze({
 const loadItemById = new Map(
   essentialLoadItems.map((item) => [item.id, item]),
 );
+const loadItemIndexById = new Map(
+  essentialLoadItems.map((item, index) => [item.id, index]),
+);
 const numberFormatters = new Map();
+const MAX_RESUME_STATE_LENGTH = 12000;
 
 export const clampPlannerNumber = (value, fallback, min, max) => {
   const parsed = Number(value);
@@ -116,7 +122,86 @@ export function calculatePlannerResult(input) {
   };
 }
 
-export function createLoadEntries(loadPlan) {
+const defaultBillHistory = () =>
+  Array.from({ length: MIN_BILL_HISTORY_MONTHS }, () => "");
+
+const normalizeBillHistory = (history) => {
+  if (!Array.isArray(history)) return defaultBillHistory();
+  const values = history
+    .slice(0, MAX_BILL_HISTORY_MONTHS)
+    .map((value) => {
+      if (value === "" || value === null || value === undefined) return "";
+      const parsed = Number(value);
+      if (
+        !Number.isFinite(parsed) ||
+        parsed < PLANNER_LIMITS.monthlyKwh.min ||
+        parsed > PLANNER_LIMITS.monthlyKwh.max
+      ) {
+        return "";
+      }
+      return parsed;
+    });
+  while (values.length < MIN_BILL_HISTORY_MONTHS) values.push("");
+  return values;
+};
+
+export function calculateBillHistoryStats(
+  history,
+  panelWatts = PLANNER_DEFAULTS.panelWatts,
+) {
+  const values = (Array.isArray(history) ? history : [])
+    .slice(0, MAX_BILL_HISTORY_MONTHS)
+    .map(Number)
+    .filter(
+      (value) =>
+        Number.isFinite(value) &&
+        value >= PLANNER_LIMITS.monthlyKwh.min &&
+        value <= PLANNER_LIMITS.monthlyKwh.max,
+    );
+  const count = values.length;
+  if (count < MIN_BILL_HISTORY_MONTHS) {
+    return {
+      ready: false,
+      count,
+      requiredCount: MIN_BILL_HISTORY_MONTHS,
+    };
+  }
+
+  const minKwh = Math.min(...values);
+  const maxKwh = Math.max(...values);
+  const averageKwh =
+    values.reduce((total, value) => total + value, 0) / count;
+  const resultFor = (monthlyKwh) =>
+    calculatePlannerResult({
+      ...PLANNER_DEFAULTS,
+      monthlyKwh,
+      panelWatts,
+    });
+
+  return {
+    ready: true,
+    count,
+    minKwh,
+    averageKwh,
+    maxKwh,
+    solarRange: {
+      min: resultFor(minKwh),
+      average: resultFor(averageKwh),
+      max: resultFor(maxKwh),
+    },
+  };
+}
+
+export function createLoadEntries(
+  loadPlan,
+  outageHours = PLANNER_DEFAULTS.outageHours,
+) {
+  const normalizedOutageHours = boundedPlannerInteger(
+    outageHours,
+    PLANNER_DEFAULTS.outageHours,
+    PLANNER_LIMITS.outageHours.min,
+    PLANNER_LIMITS.outageHours.max,
+  );
   const entries = Object.fromEntries(
     essentialLoadItems.map((item) => [
       item.id,
@@ -124,6 +209,8 @@ export function createLoadEntries(loadPlan) {
         selected: false,
         quantity: 1,
         watts: item.defaultWatts,
+        hours: normalizedOutageHours,
+        startHour: 0,
       },
     ]),
   );
@@ -135,6 +222,12 @@ export function createLoadEntries(loadPlan) {
   loadPlan.items.forEach((item) => {
     const catalogItem = loadItemById.get(item?.id);
     if (!catalogItem) return;
+    const startHour = boundedPlannerInteger(
+      item.startHour,
+      0,
+      0,
+      Math.max(0, normalizedOutageHours - 1),
+    );
     entries[catalogItem.id] = {
       selected: true,
       quantity: boundedPlannerInteger(
@@ -149,13 +242,29 @@ export function createLoadEntries(loadPlan) {
         1,
         5000,
       ),
+      hours: boundedPlannerInteger(
+        item.hours,
+        normalizedOutageHours - startHour,
+        1,
+        normalizedOutageHours - startHour,
+      ),
+      startHour,
     };
   });
 
   return entries;
 }
 
-export function selectedLoadItemsFromEntries(entries = {}) {
+export function selectedLoadItemsFromEntries(
+  entries = {},
+  outageHours = PLANNER_DEFAULTS.outageHours,
+) {
+  const normalizedOutageHours = boundedPlannerInteger(
+    outageHours,
+    PLANNER_DEFAULTS.outageHours,
+    PLANNER_LIMITS.outageHours.min,
+    PLANNER_LIMITS.outageHours.max,
+  );
   return essentialLoadItems.flatMap((item) => {
     const entry = entries[item.id];
     if (!entry?.selected) return [];
@@ -172,6 +281,23 @@ export function selectedLoadItemsFromEntries(entries = {}) {
       1,
       5000,
     );
+    const startHour = boundedPlannerInteger(
+      entry.startHour,
+      0,
+      0,
+      Math.max(0, normalizedOutageHours - 1),
+    );
+    const requestedHours = boundedPlannerInteger(
+      entry.hours,
+      normalizedOutageHours,
+      1,
+      normalizedOutageHours,
+    );
+    const hours = Math.min(
+      requestedHours,
+      normalizedOutageHours - startHour,
+    );
+    const subtotalWatts = quantity * watts;
 
     return [
       {
@@ -179,13 +305,80 @@ export function selectedLoadItemsFromEntries(entries = {}) {
         label: item.label,
         quantity,
         watts,
-        subtotalWatts: quantity * watts,
+        subtotalWatts,
+        hours,
+        startHour,
+        energyKwh: (subtotalWatts * hours) / 1000,
       },
     ];
   });
 }
 
-function normalizedLoadPlan(plan, essentialKw) {
+export function buildOutageRoutine(
+  selectedItems = [],
+  outageHours = PLANNER_DEFAULTS.outageHours,
+) {
+  const hours = boundedPlannerInteger(
+    outageHours,
+    PLANNER_DEFAULTS.outageHours,
+    PLANNER_LIMITS.outageHours.min,
+    PLANNER_LIMITS.outageHours.max,
+  );
+  const slots = Array.from({ length: hours }, (_, hour) => {
+    const activeItems = selectedItems.filter(
+      (item) =>
+        item.startHour <= hour && hour < item.startHour + item.hours,
+    );
+    return {
+      hour,
+      activeItems,
+      runningWatts: activeItems.reduce(
+        (total, item) => total + item.subtotalWatts,
+        0,
+      ),
+    };
+  });
+  const segments = slots.reduce((groups, slot) => {
+    const signature = slot.activeItems.map((item) => item.id).join("|");
+    const previous = groups.at(-1);
+    if (
+      previous &&
+      previous.signature === signature &&
+      previous.runningWatts === slot.runningWatts
+    ) {
+      previous.endHour = slot.hour + 1;
+      return groups;
+    }
+    groups.push({
+      signature,
+      startHour: slot.hour,
+      endHour: slot.hour + 1,
+      runningWatts: slot.runningWatts,
+      activeItems: slot.activeItems,
+    });
+    return groups;
+  }, []);
+
+  return {
+    hours,
+    slots,
+    segments,
+    activeHours: slots.filter((slot) => slot.runningWatts > 0).length,
+    peakWatts: slots.reduce(
+      (peak, slot) => Math.max(peak, slot.runningWatts),
+      0,
+    ),
+    energyKwh:
+      slots.reduce((total, slot) => total + slot.runningWatts, 0) / 1000,
+    allAtOnceWatts: selectedItems.reduce(
+      (total, item) => total + item.subtotalWatts,
+      0,
+    ),
+  };
+}
+
+function normalizedLoadPlan(plan, essentialKw, outageHours) {
+  const hasSchedule = plan?.loadPlan?.scheduleVersion === 1;
   const seenIds = new Set();
   const items = Array.isArray(plan?.loadPlan?.items)
     ? plan.loadPlan.items.flatMap((item) => {
@@ -193,29 +386,55 @@ function normalizedLoadPlan(plan, essentialKw) {
         if (!catalogItem || seenIds.has(catalogItem.id)) return [];
         seenIds.add(catalogItem.id);
 
-        return [
-          {
-            id: catalogItem.id,
-            quantity: boundedPlannerInteger(
-              item.quantity,
-              1,
-              1,
-              catalogItem.maxQuantity,
-            ),
-            watts: boundedPlannerInteger(
-              item.watts,
-              catalogItem.defaultWatts,
-              1,
-              5000,
-            ),
-          },
-        ];
+        const normalizedItem = {
+          id: catalogItem.id,
+          quantity: boundedPlannerInteger(
+            item.quantity,
+            1,
+            1,
+            catalogItem.maxQuantity,
+          ),
+          watts: boundedPlannerInteger(
+            item.watts,
+            catalogItem.defaultWatts,
+            1,
+            5000,
+          ),
+        };
+        if (hasSchedule) {
+          normalizedItem.hours = boundedPlannerInteger(
+            item.hours,
+            outageHours,
+            1,
+            outageHours,
+          );
+          normalizedItem.startHour = boundedPlannerInteger(
+            item.startHour,
+            0,
+            0,
+            Math.max(0, outageHours - 1),
+          );
+          normalizedItem.hours = Math.min(
+            normalizedItem.hours,
+            outageHours - normalizedItem.startHour,
+          );
+        }
+        return [normalizedItem];
       })
     : [];
-  const totalWatts = items.reduce(
+  const allAtOnceWatts = items.reduce(
     (total, item) => total + item.quantity * item.watts,
     0,
   );
+  const scheduledItems = items.map((item) => ({
+    ...item,
+    label: loadItemById.get(item.id)?.label || item.id,
+    subtotalWatts: item.quantity * item.watts,
+    hours: hasSchedule ? item.hours : outageHours,
+    startHour: hasSchedule ? item.startHour : 0,
+  }));
+  const routine = buildOutageRoutine(scheduledItems, outageHours);
+  const totalWatts = hasSchedule ? routine.peakWatts : allAtOnceWatts;
   const expectedAppliedKw = Math.max(
     PLANNER_LIMITS.essentialKw.min,
     Math.ceil((totalWatts / 1000) * 10) / 10,
@@ -226,21 +445,30 @@ function normalizedLoadPlan(plan, essentialKw) {
     totalWatts <= PLANNER_LIMITS.essentialKw.max * 1000 &&
     Math.abs(expectedAppliedKw - essentialKw) < 0.051;
 
-  return builderIsConsistent
-    ? {
-        version: 1,
-        source: "builder",
-        items,
-        totalWatts,
-        appliedKw: essentialKw,
-      }
-    : {
-        version: 1,
-        source: "manual",
-        items: [],
-        totalWatts: null,
-        appliedKw: essentialKw,
-      };
+  if (builderIsConsistent) {
+    return {
+      version: 1,
+      source: "builder",
+      items,
+      totalWatts,
+      appliedKw: essentialKw,
+      ...(hasSchedule
+        ? {
+            scheduleVersion: 1,
+            allAtOnceWatts,
+            scheduledEnergyKwh: routine.energyKwh,
+          }
+        : {}),
+    };
+  }
+
+  return {
+    version: 1,
+    source: "manual",
+    items: [],
+    totalWatts: null,
+    appliedKw: essentialKw,
+  };
 }
 
 export function normalizePlannerPayload(plan) {
@@ -251,22 +479,45 @@ export function normalizePlannerPayload(plan) {
     version: 1,
     ...inputs,
     result: calculatePlannerResult(inputs),
-    loadPlan: normalizedLoadPlan(plan, inputs.essentialKw),
+    loadPlan: normalizedLoadPlan(
+      plan,
+      inputs.essentialKw,
+      boundedPlannerInteger(
+        inputs.outageHours,
+        PLANNER_DEFAULTS.outageHours,
+        PLANNER_LIMITS.outageHours.min,
+        PLANNER_LIMITS.outageHours.max,
+      ),
+    ),
   };
 }
 
 function scenarioCandidate(scenario) {
-  const selectedItems = selectedLoadItemsFromEntries(scenario?.loadEntries);
+  const outageHours = boundedPlannerInteger(
+    scenario?.inputs?.outageHours,
+    PLANNER_DEFAULTS.outageHours,
+    PLANNER_LIMITS.outageHours.min,
+    PLANNER_LIMITS.outageHours.max,
+  );
+  const selectedItems = selectedLoadItemsFromEntries(
+    scenario?.loadEntries,
+    outageHours,
+  );
   return {
     ...(scenario?.inputs || PLANNER_DEFAULTS),
     loadPlan: {
       version: 1,
       source: scenario?.loadPlanSource,
-      items: selectedItems.map(({ id, quantity, watts }) => ({
-        id,
-        quantity,
-        watts,
-      })),
+      scheduleVersion: 1,
+      items: selectedItems.map(
+        ({ id, quantity, watts, hours, startHour }) => ({
+          id,
+          quantity,
+          watts,
+          hours,
+          startHour,
+        }),
+      ),
     },
   };
 }
@@ -295,7 +546,7 @@ function cloneLoadEntries(entries) {
   );
 }
 
-function createScenario(id, inputs, loadPlan) {
+function createScenario(id, inputs, loadPlan, billHistory) {
   const normalizedPayload = normalizePlannerPayload({
     ...inputs,
     loadPlan,
@@ -304,8 +555,12 @@ function createScenario(id, inputs, loadPlan) {
     id,
     label: scenarioLabels[id],
     inputs: normalizePlannerInputs(normalizedPayload || inputs),
-    loadEntries: createLoadEntries(normalizedPayload?.loadPlan),
+    loadEntries: createLoadEntries(
+      normalizedPayload?.loadPlan,
+      normalizedPayload?.outageHours,
+    ),
     loadPlanSource: normalizedPayload?.loadPlan.source || "manual",
+    billHistory: normalizeBillHistory(billHistory),
   };
 }
 
@@ -315,6 +570,160 @@ export function createInitialPlannerScenarioState(inputs = PLANNER_DEFAULTS) {
     activeId: scenarioIds[0],
     scenarios: [createScenario(scenarioIds[0], inputs)],
   };
+}
+
+function plannerResumeCandidate(state) {
+  const scenarios = Array.isArray(state?.scenarios)
+    ? state.scenarios
+        .filter((scenario, index, source) => {
+          const id = scenario?.id;
+          return (
+            scenarioIds.includes(id) &&
+            source.findIndex((candidate) => candidate?.id === id) === index
+          );
+        })
+        .slice(0, MAX_PLANNER_SCENARIOS)
+    : [];
+  if (!scenarios.length) return null;
+
+  return {
+    v: 1,
+    a: Math.max(
+      0,
+      scenarios.findIndex((scenario) => scenario.id === state.activeId),
+    ),
+    s: scenarios.map((scenario) => {
+      const inputs = normalizePlannerInputs(scenario.inputs);
+      const items = selectedLoadItemsFromEntries(
+        scenario.loadEntries,
+        inputs.outageHours,
+      );
+      return [
+        inputs.monthlyKwh,
+        inputs.essentialKw,
+        inputs.outageHours,
+        inputs.panelWatts,
+        normalizeBillHistory(scenario.billHistory).map((value) =>
+          value === "" ? null : Number(value),
+        ),
+        scenario.loadPlanSource === "builder" ? 1 : 0,
+        items.map((item) => [
+          loadItemIndexById.get(item.id),
+          item.quantity,
+          item.watts,
+          item.hours,
+          item.startHour,
+        ]),
+      ];
+    }),
+  };
+}
+
+export function plannerSearchParamsForState(state) {
+  const active = activePlannerScenario(state);
+  const inputs = normalizePlannerInputs(active?.inputs);
+  const parameters = new URLSearchParams({
+    monthly: String(inputs.monthlyKwh),
+    essential: String(inputs.essentialKw),
+    hours: String(inputs.outageHours),
+    panel: String(inputs.panelWatts),
+  });
+  const candidate = plannerResumeCandidate(state);
+  if (candidate) parameters.set("resume", JSON.stringify(candidate));
+  return parameters;
+}
+
+function plannerStateFromResumeValue(value) {
+  if (!value || value.length > MAX_RESUME_STATE_LENGTH) return null;
+  try {
+    const parsed = JSON.parse(value);
+    if (
+      parsed?.v !== 1 ||
+      !Array.isArray(parsed.s) ||
+      parsed.s.length < 1 ||
+      parsed.s.length > MAX_PLANNER_SCENARIOS
+    ) {
+      return null;
+    }
+
+    const scenarios = parsed.s.map((encoded, index) => {
+      if (!Array.isArray(encoded) || encoded.length < 7) {
+        throw new Error("Invalid planner resume scenario");
+      }
+      const id = scenarioIds[index];
+      const inputs = normalizePlannerInputs({
+        monthlyKwh: encoded[0],
+        essentialKw: encoded[1],
+        outageHours: encoded[2],
+        panelWatts: encoded[3],
+      });
+      const loadItems = Array.isArray(encoded[6])
+        ? encoded[6].slice(0, essentialLoadItems.length).flatMap((item) => {
+            if (!Array.isArray(item)) return [];
+            const catalogItem = essentialLoadItems[Number(item[0])];
+            if (!catalogItem) return [];
+            return [
+              {
+                id: catalogItem.id,
+                quantity: item[1],
+                watts: item[2],
+                hours: item[3],
+                startHour: item[4],
+              },
+            ];
+          })
+        : [];
+      const desiredSource = encoded[5] === 1 ? "builder" : "manual";
+      const scenario = createScenario(
+        id,
+        inputs,
+        {
+          version: 1,
+          source: desiredSource,
+          scheduleVersion: 1,
+          items: loadItems,
+        },
+        encoded[4],
+      );
+      return {
+        ...scenario,
+        inputs,
+        loadEntries: createLoadEntries(
+          {
+            source: "builder",
+            scheduleVersion: 1,
+            items: loadItems,
+          },
+          inputs.outageHours,
+        ),
+        loadPlanSource:
+          desiredSource === "builder"
+            ? scenario.loadPlanSource
+            : "manual",
+      };
+    });
+    const activeIndex = boundedPlannerInteger(
+      parsed.a,
+      0,
+      0,
+      scenarios.length - 1,
+    );
+    return {
+      version: 1,
+      activeId: scenarios[activeIndex].id,
+      scenarios,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function plannerScenarioStateFromSearch(search = "") {
+  const parameters = new URLSearchParams(search);
+  return (
+    plannerStateFromResumeValue(parameters.get("resume")) ||
+    createInitialPlannerScenarioState(plannerInputsFromSearch(search))
+  );
 }
 
 export function activePlannerScenario(state) {
@@ -372,6 +781,7 @@ export function plannerScenarioReducer(state, action) {
             label: scenarioLabels[nextId],
             inputs: { ...active.inputs },
             loadEntries: cloneLoadEntries(active.loadEntries),
+            billHistory: [...active.billHistory],
           },
         ],
       };
@@ -397,17 +807,112 @@ export function plannerScenarioReducer(state, action) {
     }
 
     case "SET_INPUT":
-      return updateScenario(state, state.activeId, (scenario) => ({
-        ...scenario,
-        inputs: normalizePlannerInputs({
+      return updateScenario(state, state.activeId, (scenario) => {
+        const inputs = normalizePlannerInputs({
           ...scenario.inputs,
           [action.field]: action.value,
-        }),
-        loadPlanSource:
-          action.field === "essentialKw"
-            ? "manual"
-            : scenario.loadPlanSource,
-      }));
+        });
+        const scheduleHours = boundedPlannerInteger(
+          inputs.outageHours,
+          PLANNER_DEFAULTS.outageHours,
+          PLANNER_LIMITS.outageHours.min,
+          PLANNER_LIMITS.outageHours.max,
+        );
+        const loadEntries =
+          action.field === "outageHours"
+            ? Object.fromEntries(
+                Object.entries(scenario.loadEntries).map(([id, entry]) => {
+                  const startHour = boundedPlannerInteger(
+                    entry.startHour,
+                    0,
+                    0,
+                    Math.max(0, scheduleHours - 1),
+                  );
+                  return [
+                    id,
+                    {
+                      ...entry,
+                      hours: boundedPlannerInteger(
+                        entry.hours,
+                        scheduleHours - startHour,
+                        1,
+                        scheduleHours - startHour,
+                      ),
+                      startHour,
+                    },
+                  ];
+                }),
+              )
+            : scenario.loadEntries;
+        return {
+          ...scenario,
+          inputs,
+          loadEntries,
+          loadPlanSource:
+            action.field === "essentialKw"
+              ? "manual"
+              : scenario.loadPlanSource,
+        };
+      });
+
+    case "SET_BILL_ENTRY":
+      return updateScenario(state, state.activeId, (scenario) => {
+        if (
+          !Number.isInteger(action.index) ||
+          action.index < 0 ||
+          action.index >= scenario.billHistory.length
+        ) {
+          return scenario;
+        }
+        const billHistory = [...scenario.billHistory];
+        billHistory[action.index] =
+          action.value === "" ? "" : action.value;
+        return { ...scenario, billHistory };
+      });
+
+    case "ADD_BILL_ENTRY":
+      return updateScenario(state, state.activeId, (scenario) =>
+        scenario.billHistory.length >= MAX_BILL_HISTORY_MONTHS
+          ? scenario
+          : {
+              ...scenario,
+              billHistory: [...scenario.billHistory, ""],
+            },
+      );
+
+    case "REMOVE_BILL_ENTRY":
+      return updateScenario(state, state.activeId, (scenario) => {
+        if (
+          scenario.billHistory.length <= MIN_BILL_HISTORY_MONTHS ||
+          !Number.isInteger(action.index) ||
+          action.index < 0 ||
+          action.index >= scenario.billHistory.length
+        ) {
+          return scenario;
+        }
+        return {
+          ...scenario,
+          billHistory: scenario.billHistory.filter(
+            (_, index) => index !== action.index,
+          ),
+        };
+      });
+
+    case "APPLY_BILL_AVERAGE":
+      return updateScenario(state, state.activeId, (scenario) => {
+        const stats = calculateBillHistoryStats(
+          scenario.billHistory,
+          scenario.inputs.panelWatts,
+        );
+        if (!stats.ready) return scenario;
+        return {
+          ...scenario,
+          inputs: normalizePlannerInputs({
+            ...scenario.inputs,
+            monthlyKwh: Math.round(stats.averageKwh),
+          }),
+        };
+      });
 
     case "PATCH_LOAD_ENTRY":
       if (!loadItemById.has(action.id)) return state;

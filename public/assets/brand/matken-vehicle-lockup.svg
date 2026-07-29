@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 280" role="img" aria-labelledby="title desc">
+  <title id="title">Matken vehicle lockup</title>
+  <desc id="desc">Wide Matken brand panel for vehicle graphics</desc>
+  <defs>
+    <style>
+      @font-face{font-family:Manrope;src:url("../fonts/manrope-variable.woff2") format("woff2");font-weight:200 800;font-style:normal}
+      .wordmark{font-family:Manrope,Arial,sans-serif;font-size:122px;font-weight:800;letter-spacing:-5px}
+      .descriptor{font-family:Manrope,Arial,sans-serif;font-size:20px;font-weight:750;letter-spacing:4px}
+      .phone{font-family:Manrope,Arial,sans-serif;font-size:35px;font-weight:800}
+    </style>
+  </defs>
+  <rect width="1200" height="280" rx="20" fill="#061831"/>
+  <g transform="translate(56 41) scale(1.7)">
+    <path d="M15 82V16L48 50L81 16V82" fill="none" stroke="#FFFFFF" stroke-width="14" stroke-linecap="square" stroke-linejoin="bevel"/>
+    <rect x="41.5" y="43.5" width="13" height="13" rx="1.5" fill="#CF2630"/>
+  </g>
+  <text class="wordmark" x="252" y="147" fill="#FFFFFF">MATKEN</text>
+  <text class="descriptor" x="258" y="195" fill="#FFFFFF">ELECTRICAL · SOLAR · CONSTRUCTION</text>
+  <line x1="917" y1="55" x2="917" y2="225" stroke="#FFFFFF" stroke-opacity=".22" stroke-width="2"/>
+  <text class="phone" x="957" y="137" fill="#FFFFFF">(876)</text>
+  <text class="phone" x="957" y="182" fill="#FFFFFF">568-2616</text>
+</svg>

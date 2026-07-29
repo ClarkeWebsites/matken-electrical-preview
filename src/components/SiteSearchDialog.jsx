@@ -50,12 +50,30 @@ const searchItems = [
       "quote estimate consultation contact photos appointment electrical solar construction",
   },
   {
+    type: "Planning tool",
+    title: "Matken Project Pack",
+    description:
+      "Combine a Blueprint, planning range, readiness notes, and request summary into a printable download.",
+    to: "/project-pack",
+    keywords:
+      "download print pdf pack blueprint planner readiness summary handoff",
+  },
+  {
     type: "Customer access",
     title: "Invoice payment access",
     description:
       "See how private invoice lookup and provider-hosted payment will work after activation.",
     to: "/pay-invoice",
     keywords: "invoice billing receipt payment card secure pay",
+  },
+  {
+    type: "Customer access",
+    title: "Project status",
+    description:
+      "Request a private one-time link to view a confirmed project state.",
+    to: "/project-status",
+    keywords:
+      "track project progress update schedule status reference verification email sms",
   },
   {
     type: "Learn",
