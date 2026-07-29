@@ -44,9 +44,9 @@ export function ProjectPackPage() {
   );
   const [planning, setPlanning] = useState(() =>
     mergeProjectPackPlanning({
-      blueprint: incoming.blueprint,
-      planner: incoming.planner,
-      readiness: incoming.readiness,
+      ...(incoming.blueprint ? { blueprint: incoming.blueprint } : {}),
+      ...(incoming.planner ? { planner: incoming.planner } : {}),
+      ...(incoming.readiness ? { readiness: incoming.readiness } : {}),
     }),
   );
   const [requestSummary, setRequestSummary] = useState(
