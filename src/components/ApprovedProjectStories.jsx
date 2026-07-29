@@ -25,7 +25,7 @@ export function ApprovedProjectStories({
           <div>
             <span className="section-index">Verified Matken work</span>
             <h2 id="verified-project-stories-title">
-              See the problem, the approach, and the confirmed outcome.
+              See the need, coordination, work, and confirmed outcome.
             </h2>
           </div>
           <p>
@@ -63,8 +63,12 @@ export function ApprovedProjectStories({
                       <dd>{story.challenge}</dd>
                     </div>
                     <div>
-                      <dt>Matken approach</dt>
-                      <dd>{story.approach}</dd>
+                      <dt>Project coordination</dt>
+                      <dd>{story.coordination}</dd>
+                    </div>
+                    <div>
+                      <dt>Work completed</dt>
+                      <dd>{story.workCompleted}</dd>
                     </div>
                     <div>
                       <dt>Confirmed outcome</dt>

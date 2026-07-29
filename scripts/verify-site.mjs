@@ -152,10 +152,12 @@ const storySource = await readFile(
 );
 if (
   !storySource.includes("projectStoryCandidates = Object.freeze([])") ||
-  !storySource.includes('rightsStatus !== "approved"')
+  !storySource.includes('rightsStatus !== "approved"') ||
+  !storySource.includes('requireText("coordination"') ||
+  !storySource.includes('requireText("workCompleted"')
 ) {
   throw new Error(
-    "Project stories must remain empty and image-rights gated until owner approval.",
+    "Project stories must remain empty, evidence-complete, and image-rights gated until owner approval.",
   );
 }
 
