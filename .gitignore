@@ -1,0 +1,20 @@
+.DS_Store
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+*.log
+.env
+.env.*
+!.env.example
+
+# Local design/source references and owner-review material are not part of the
+# public GitHub Pages preview repository.
+AGENTS.md
+FORM_AND_PAYMENTS_ARCHITECTURE.md
+OWNER_INPUTS_REQUIRED.md
+design-qa.md
+design-references/
+source-desktop.png
+source-reference.*

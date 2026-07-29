@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /
+
+# Preview only. Replace after owner, legal, provider, and production-domain approval.
