@@ -128,6 +128,133 @@ test.describe("Matken core customer journeys", () => {
     assertHealthy();
   });
 
+  test("preserves all four Project Pack sections through the request handoff", async ({
+    page,
+  }) => {
+    const assertHealthy = watchPageHealth(page);
+    await openStablePage(page, "/");
+
+    await page.getByRole("button", { name: "Start my blueprint" }).click();
+    await page
+      .getByRole("radio", {
+        name: "Keep essentials on during outages",
+      })
+      .check();
+    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("radio", { name: "Home", exact: true }).check();
+    await page.getByRole("radio", { name: "Planning", exact: true }).check();
+    await page.getByRole("button", { name: "Continue" }).click();
+    await page
+      .getByRole("checkbox", {
+        name: "Recent electricity bills or monthly kWh totals",
+      })
+      .check();
+    await page.getByRole("button", { name: "Create my blueprint" }).click();
+    await page.getByRole("link", { name: "Add to Project Pack" }).click();
+
+    await expect(page.getByText("01 · Project Blueprint")).toBeVisible();
+    await expect(
+      page.getByRole("heading", {
+        name: "Keep essentials on during outages",
+      }),
+    ).toBeVisible();
+
+    await openStablePage(page, "/planner");
+    await page.getByRole("link", { name: "Add to Project Pack" }).click();
+    await expect(page.getByText("01 · Project Blueprint")).toBeVisible();
+    await expect(
+      page.getByText("02 · Educational planning range"),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", {
+        name: /4\.2 kW solar · 10\.0 kWh battery/i,
+      }),
+    ).toBeVisible();
+
+    await openStablePage(page, "/request");
+    await page
+      .getByRole("button", { name: /Electrical/i })
+      .first()
+      .click();
+    await page.getByRole("combobox", { name: "Property type" }).selectOption(
+      "Home",
+    );
+    await page.getByRole("combobox", { name: "Parish" }).selectOption(
+      "Saint Andrew",
+    );
+    await page.getByRole("button", { name: "Continue" }).click();
+    await page
+      .getByRole("checkbox", {
+        name: "Affected rooms, circuits, or equipment identified",
+      })
+      .check();
+    await page
+      .getByRole("button", { name: "Within a few months" })
+      .click();
+    await page
+      .getByRole("textbox", { name: /^Project details/ })
+      .fill(
+        "We need a non-emergency electrical upgrade review for several rooms in our home.",
+      );
+    await page.getByRole("button", { name: "Continue" }).click();
+    await page
+      .getByRole("textbox", { name: "Name" })
+      .fill("Full Pack Customer");
+    await page
+      .getByRole("textbox", { name: "Phone" })
+      .fill("(876) 555-0101");
+    await page
+      .getByRole("checkbox", {
+        name: /Matken may contact me about this service request/i,
+      })
+      .check();
+    await page.getByRole("button", { name: "Review request" }).click();
+    await page
+      .getByRole("button", { name: "Prepare request summary" })
+      .click();
+    await page.getByRole("button", { name: "Open Project Pack" }).click();
+
+    await expect(page.getByText("01 · Project Blueprint")).toBeVisible();
+    await expect(
+      page.getByText("02 · Educational planning range"),
+    ).toBeVisible();
+    await expect(page.getByText("03 · Readiness")).toBeVisible();
+    await expect(page.getByText("04 · Request summary")).toBeVisible();
+    await expect(
+      page.getByRole("heading", {
+        name: "Keep essentials on during outages",
+      }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", {
+        name: /4\.2 kW solar · 10\.0 kWh battery/i,
+      }),
+    ).toBeVisible();
+    await expect(page.getByText(/Full Pack Customer/)).toBeVisible();
+    await expect(
+      page.getByText("Affected rooms, circuits, or equipment identified", {
+        exact: true,
+      }),
+    ).toBeVisible();
+
+    const serializedHistoryState = await page.evaluate(() =>
+      JSON.stringify(window.history.state),
+    );
+    expect(serializedHistoryState).not.toContain("Full Pack Customer");
+    expect(serializedHistoryState).not.toContain("555-0101");
+    expect(serializedHistoryState).not.toContain("requestTransferKey");
+
+    await page.reload({ waitUntil: "networkidle" });
+    await expect(page.getByText("01 · Project Blueprint")).toBeVisible();
+    await expect(
+      page.getByText("02 · Educational planning range"),
+    ).toBeVisible();
+    await expect(page.getByText("03 · Readiness")).toBeVisible();
+    await expect(page.getByText("04 · Request summary")).toHaveCount(0);
+    await expect(page.getByText(/Full Pack Customer/)).toHaveCount(0);
+    assertHealthy();
+  });
+
   test("reviews a service-specific request while photos remain local", async ({
     page,
   }) => {

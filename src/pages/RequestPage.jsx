@@ -833,8 +833,8 @@ export function RequestPage() {
     });
     navigate("/project-pack", {
       state: {
-        blueprint: appliedBlueprint,
-        planner: plannerData,
+        ...(appliedBlueprint ? { blueprint: appliedBlueprint } : {}),
+        ...(plannerData ? { planner: plannerData } : {}),
         readiness: {
           service: values.service,
           availableContextIds: values.availableContextIds,

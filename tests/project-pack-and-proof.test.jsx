@@ -60,8 +60,10 @@ const approvedStory = {
     "An approved summary with enough factual detail for publication.",
   challenge:
     "An approved description of the customer need documented by Matken.",
-  approach:
-    "An approved description of the work approach documented by Matken.",
+  coordination:
+    "An approved description of how Matken coordinated the project and its participants.",
+  workCompleted:
+    "An approved description of the specific work Matken completed for the project.",
   outcome:
     "An approved description of the completed outcome documented by Matken.",
   locationLabel: "Jamaica",
@@ -172,6 +174,18 @@ describe("approval-gated project story system", () => {
         image: { ...approvedStory.image, rightsStatus: "unknown" },
       }),
     ).toBe(false);
+    expect(
+      isApprovedProjectStory({
+        ...approvedStory,
+        coordination: "",
+      }),
+    ).toBe(false);
+    expect(
+      isApprovedProjectStory({
+        ...approvedStory,
+        workCompleted: "",
+      }),
+    ).toBe(false);
   });
 
   it("renders nothing while the approval registry is empty", () => {
@@ -205,5 +219,7 @@ describe("approval-gated project story system", () => {
       }),
     ).toBeInTheDocument();
     expect(screen.getByText("Approved project record")).toBeInTheDocument();
+    expect(screen.getByText("Project coordination")).toBeInTheDocument();
+    expect(screen.getByText("Work completed")).toBeInTheDocument();
   });
 });

@@ -31,7 +31,8 @@ export function projectStoryValidationErrors(story) {
   requireText("title", 6, 100);
   requireText("summary", 20, 280);
   requireText("challenge", 20, 500);
-  requireText("approach", 20, 500);
+  requireText("coordination", 20, 500);
+  requireText("workCompleted", 20, 500);
   requireText("outcome", 20, 500);
   requireText("locationLabel", 2, 100);
 
