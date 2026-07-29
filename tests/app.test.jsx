@@ -216,7 +216,7 @@ describe("Matken Project Blueprint model", () => {
 describe("Matken customer journeys", () => {
   it("renders the home route with verified service paths", async () => {
     const user = userEvent.setup();
-    renderAt("/");
+    renderAt("/#/");
 
     expect(
       await screen.findByRole("heading", {
@@ -245,6 +245,7 @@ describe("Matken customer journeys", () => {
     ).not.toBeInTheDocument();
 
     await user.click(blueprintShortcut);
+    expect(window.location.hash).toBe("#/");
     await waitFor(() =>
       expect(
         screen.getByRole("button", { name: "Start my blueprint" }),
