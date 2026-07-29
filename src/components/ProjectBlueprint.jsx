@@ -605,6 +605,10 @@ export function ProjectBlueprint() {
               <Printer size={17} aria-hidden="true" />
               Print / save
             </button>
+            <Link to="/project-pack" state={{ blueprint }}>
+              <FileText size={17} aria-hidden="true" />
+              Add to Project Pack
+            </Link>
             <Link to={`/services/${blueprint.service}`}>
               Explore {resultService.shortLabel}
             </Link>

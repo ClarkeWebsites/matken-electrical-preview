@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 580 112" role="img" aria-labelledby="title desc">
+  <title id="title">Matken monochrome logo</title>
+  <desc id="desc">Single-color connected conduit M mark and Matken wordmark</desc>
+  <defs>
+    <style>
+      @font-face{font-family:Manrope;src:url("../fonts/manrope-variable.woff2") format("woff2");font-weight:200 800;font-style:normal}
+      .wordmark{font-family:Manrope,Arial,sans-serif;font-size:62px;font-weight:800;letter-spacing:-2.6px}
+      .descriptor{font-family:Manrope,Arial,sans-serif;font-size:10.5px;font-weight:750;letter-spacing:2.45px}
+    </style>
+  </defs>
+  <g transform="translate(4 8)">
+    <path d="M15 82V16L48 50L81 16V82" fill="none" stroke="#101820" stroke-width="14" stroke-linecap="square" stroke-linejoin="bevel"/>
+    <rect x="41.5" y="43.5" width="13" height="13" rx="1.5" fill="#101820"/>
+  </g>
+  <text class="wordmark" x="116" y="70" fill="#101820">MATKEN</text>
+  <text class="descriptor" x="119" y="96" fill="#101820">ELECTRICAL · SOLAR · CONSTRUCTION</text>
+</svg>

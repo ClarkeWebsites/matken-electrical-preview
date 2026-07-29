@@ -9,12 +9,18 @@ const requiredFiles = [
   "src/styles.css",
   "src/data/site.js",
   "src/lib/providerConfig.js",
+  "src/lib/appUrl.js",
+  "src/lib/projectPack.js",
   "src/pages/HomePage.jsx",
   "src/pages/ServicesPage.jsx",
   "src/pages/PlannerPage.jsx",
   "src/pages/RequestPage.jsx",
   "src/pages/InvoicePage.jsx",
+  "src/pages/ProjectPackPage.jsx",
+  "src/pages/StatusPage.jsx",
   "src/pages/ContentPages.jsx",
+  "src/components/ApprovedProjectStories.jsx",
+  "src/data/projectStories.js",
   "public/assets/matken-logo-source.png",
   "public/assets/matken-hero-solar.jpg",
   "public/assets/service-electrical.jpg",
@@ -29,6 +35,12 @@ const requiredFiles = [
   "public/assets/optimized/service-construction-960.webp",
   "public/assets/optimized/service-construction-1440.webp",
   "public/assets/matken-contact.vcf",
+  "public/assets/brand/matken-logo-horizontal.svg",
+  "public/assets/brand/matken-logo-wordmark.svg",
+  "public/assets/brand/matken-logo-reversed.svg",
+  "public/assets/brand/matken-mark.svg",
+  "public/assets/brand/matken-icon-192.png",
+  "public/assets/brand/matken-icon-512.png",
   "public/assets/fonts/dm-sans-variable.woff2",
   "public/assets/fonts/manrope-variable.woff2",
   "public/robots.txt",
@@ -40,7 +52,9 @@ const requiredRoutes = [
   'path="services/:slug"',
   'path="planner"',
   'path="request"',
+  'path="project-pack"',
   'path="pay-invoice"',
+  'path="project-status"',
   'path="resources"',
   'path="resources/:slug"',
   'path="about"',
@@ -100,9 +114,49 @@ if (!combinedSource.includes("No public invoice-number lookup")) {
 const envExample = await readFile(path.join(root, ".env.example"), "utf8");
 if (
   !envExample.includes("VITE_REQUEST_ENDPOINT=\n") ||
-  !envExample.includes("VITE_INVOICE_LOOKUP_ENDPOINT=\n")
+  !envExample.includes("VITE_INVOICE_LOOKUP_ENDPOINT=\n") ||
+  !envExample.includes("VITE_PROJECT_STATUS_ENDPOINT=\n")
 ) {
   throw new Error("Provider endpoints must remain blank in .env.example.");
+}
+
+const prepareSource = await readFile(
+  path.join(root, "scripts/prepare-sites-build.mjs"),
+  "utf8",
+);
+const appUrlSource = await readFile(
+  path.join(root, "src/lib/appUrl.js"),
+  "utf8",
+);
+if (
+  prepareSource.includes("rewritePublicPaths") ||
+  prepareSource.includes("replaceAll(") ||
+  !appUrlSource.includes("publicAssetUrl") ||
+  !appUrlSource.includes("import.meta.env.BASE_URL")
+) {
+  throw new Error(
+    "Public asset paths must be source-aware; post-build text rewriting is forbidden.",
+  );
+}
+
+if (
+  !combinedSource.includes("No project lookup was performed") ||
+  !combinedSource.includes("Authoritative states only")
+) {
+  throw new Error("Project-status provider and authority boundaries are missing.");
+}
+
+const storySource = await readFile(
+  path.join(root, "src/data/projectStories.js"),
+  "utf8",
+);
+if (
+  !storySource.includes("projectStoryCandidates = Object.freeze([])") ||
+  !storySource.includes('rightsStatus !== "approved"')
+) {
+  throw new Error(
+    "Project stories must remain empty and image-rights gated until owner approval.",
+  );
 }
 
 const indexSource = await readFile(path.join(root, "index.html"), "utf8");

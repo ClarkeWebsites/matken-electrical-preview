@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Matken social avatar</title>
+  <desc id="desc">Navy social profile icon with the Matken connected conduit M</desc>
+  <rect width="512" height="512" rx="112" fill="#061831"/>
+  <g transform="translate(160 144) scale(2)">
+    <path d="M15 82V16L48 50L81 16V82" fill="none" stroke="#FFFFFF" stroke-width="14" stroke-linecap="square" stroke-linejoin="bevel"/>
+    <rect x="41.5" y="43.5" width="13" height="13" rx="1.5" fill="#CF2630"/>
+  </g>
+</svg>

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Matken Electrical</title>
+  <desc id="desc">Social sharing card for Matken electrical, solar, and construction planning</desc>
+  <defs>
+    <style>
+      @font-face{font-family:Manrope;src:url("../fonts/manrope-variable.woff2") format("woff2");font-weight:200 800;font-style:normal}
+      .wordmark{font-family:Manrope,Arial,sans-serif;font-size:128px;font-weight:800;letter-spacing:-5px}
+      .descriptor{font-family:Manrope,Arial,sans-serif;font-size:22px;font-weight:750;letter-spacing:4px}
+      .message{font-family:Manrope,Arial,sans-serif;font-size:32px;font-weight:650}
+    </style>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#061831"/>
+      <stop offset="1" stop-color="#0D2B55"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="1085" cy="76" r="214" fill="none" stroke="#FFFFFF" stroke-opacity=".05" stroke-width="42"/>
+  <g transform="translate(80 118) scale(2.3)">
+    <path d="M15 82V16L48 50L81 16V82" fill="none" stroke="#FFFFFF" stroke-width="14" stroke-linecap="square" stroke-linejoin="bevel"/>
+    <rect x="41.5" y="43.5" width="13" height="13" rx="1.5" fill="#CF2630"/>
+  </g>
+  <text class="wordmark" x="346" y="283" fill="#FFFFFF">MATKEN</text>
+  <text class="descriptor" x="353" y="337" fill="#FFFFFF">ELECTRICAL · SOLAR · CONSTRUCTION</text>
+  <line x1="82" y1="425" x2="1118" y2="425" stroke="#CF2630" stroke-width="7"/>
+  <text class="message" x="84" y="507" fill="#FFFFFF">Power, projects, and next steps—made clearer.</text>
+  <text class="message" x="84" y="560" fill="#FFFFFF" opacity=".72">Jamaica · (876) 568-2616</text>
+</svg>

@@ -10,12 +10,17 @@ const requestEndpoint = normalizeRelativeEndpoint(
 const invoiceLookupEndpoint = normalizeRelativeEndpoint(
   import.meta.env.VITE_INVOICE_LOOKUP_ENDPOINT,
 );
+const projectStatusEndpoint = normalizeRelativeEndpoint(
+  import.meta.env.VITE_PROJECT_STATUS_ENDPOINT,
+);
 
 export const providerConfig = Object.freeze({
   requestEndpoint,
   invoiceLookupEndpoint,
+  projectStatusEndpoint,
   requestMode: requestEndpoint ? "connected" : "preview",
   paymentMode: invoiceLookupEndpoint ? "connected" : "preview",
+  projectStatusMode: projectStatusEndpoint ? "connected" : "preview",
 });
 
 export const PROVIDER_REQUEST_TIMEOUT_MS = 15_000;
@@ -132,5 +137,129 @@ export async function requestInvoiceAccess({ invoiceReference, email }) {
     mode: "submitted",
     message:
       "If the details match an invoice, a secure access link will be sent.",
+  };
+}
+
+export const projectStatusStages = Object.freeze([
+  {
+    code: "request_received",
+    label: "Request received",
+    description: "The project request is available for review.",
+  },
+  {
+    code: "scope_clarification",
+    label: "Clarifying the scope",
+    description: "Project details or site context are being organized.",
+  },
+  {
+    code: "site_review",
+    label: "Site review",
+    description: "A property or technical review is the active next step.",
+  },
+  {
+    code: "proposal_ready",
+    label: "Proposal ready",
+    description: "A project document is ready through the approved channel.",
+  },
+  {
+    code: "approved_scheduled",
+    label: "Approved and scheduled",
+    description: "The agreed work has an authoritative schedule.",
+  },
+  {
+    code: "in_progress",
+    label: "In progress",
+    description: "The approved work is underway.",
+  },
+  {
+    code: "complete",
+    label: "Complete",
+    description: "The project record has been marked complete.",
+  },
+]);
+
+const projectStatusCodes = new Set(
+  projectStatusStages.map((stage) => stage.code),
+);
+
+const normalizeAccessToken = (value) => {
+  const token = String(value || "").trim();
+  return /^[a-z0-9_-]{24,256}$/i.test(token) ? token : "";
+};
+
+export async function requestProjectStatusAccess(
+  { projectReference, channel, destination },
+  options,
+) {
+  const genericMessage =
+    "If the details match a project, a one-time access link will be sent.";
+
+  if (!providerConfig.projectStatusEndpoint) {
+    return {
+      ok: true,
+      mode: "preview",
+      message:
+        "Project tracking is not connected in this prototype. No project lookup was performed and no message was sent.",
+    };
+  }
+
+  await postProviderJson(
+    providerConfig.projectStatusEndpoint,
+    {
+      action: "request-access",
+      projectReference,
+      channel,
+      destination,
+    },
+    genericMessage,
+    options,
+  );
+
+  return {
+    ok: true,
+    mode: "submitted",
+    message: genericMessage,
+  };
+}
+
+export async function lookupProjectStatus(accessToken, options) {
+  const token = normalizeAccessToken(accessToken);
+  if (!token || !providerConfig.projectStatusEndpoint) {
+    throw new Error(
+      "This project-status link is unavailable. Request a new one-time link.",
+    );
+  }
+
+  const result = await postProviderJson(
+    providerConfig.projectStatusEndpoint,
+    { action: "lookup-status", accessToken: token },
+    "This project-status link is unavailable. Request a new one-time link.",
+    options,
+  );
+
+  if (
+    !projectStatusCodes.has(result.status) ||
+    !/^[a-z0-9_-]{6,64}$/i.test(String(result.projectReference || ""))
+  ) {
+    throw new Error(
+      "This project-status link is unavailable. Request a new one-time link.",
+    );
+  }
+
+  const stage = projectStatusStages.find(
+    (item) => item.code === result.status,
+  );
+  return {
+    projectReference: result.projectReference,
+    status: stage,
+    updatedLabel:
+      typeof result.updatedLabel === "string" &&
+      result.updatedLabel.length <= 80
+        ? result.updatedLabel
+        : "",
+    nextStep:
+      typeof result.nextStep === "string" && result.nextStep.length <= 240
+        ? result.nextStep
+        : "",
   };
 }

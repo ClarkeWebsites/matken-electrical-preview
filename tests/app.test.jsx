@@ -650,6 +650,9 @@ describe("Matken customer journeys", () => {
       }),
     );
     await user.click(
+      screen.getByRole("button", { name: /Review request/i }),
+    );
+    await user.click(
       screen.getByRole("button", { name: /Prepare request summary/i }),
     );
 
@@ -874,6 +877,9 @@ describe("Matken customer journeys", () => {
       }),
     );
     await user.click(
+      screen.getByRole("button", { name: /Review request/i }),
+    );
+    await user.click(
       screen.getByRole("button", { name: /Prepare request summary/i }),
     );
 
@@ -911,7 +917,7 @@ describe("Matken customer journeys", () => {
       }),
     );
     await user.click(
-      screen.getByRole("button", { name: /Prepare request summary/i }),
+      screen.getByRole("button", { name: /Review request/i }),
     );
 
     expect(screen.getByText("Enter a valid phone number.")).toBeInTheDocument();
@@ -943,6 +949,9 @@ describe("Matken customer journeys", () => {
       screen.getByRole("checkbox", {
         name: /Matken may contact me about this service request/i,
       }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: /Review request/i }),
     );
     await user.click(
       screen.getByRole("button", { name: /Prepare request summary/i }),

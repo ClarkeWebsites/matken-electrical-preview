@@ -3,8 +3,6 @@ import {
   copyFileSync,
   existsSync,
   mkdirSync,
-  readFileSync,
-  readdirSync,
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
@@ -29,48 +27,11 @@ if (githubPagesBase) {
     );
   }
 
-  const rewritePublicPaths = (directory) => {
-    for (const entry of readdirSync(directory, { withFileTypes: true })) {
-      const file = path.join(directory, entry.name);
-      if (entry.isDirectory()) {
-        rewritePublicPaths(file);
-        continue;
-      }
-      if (!/\.(?:css|html|js)$/.test(entry.name)) continue;
-
-      const source = readFileSync(file, "utf8");
-      const rewritten = source
-        .replace(
-          /(^|["'(=:])\/assets\//g,
-          `$1${githubPagesBase}assets/`,
-        )
-        .replaceAll(
-          'href:"/"',
-          `href:"${githubPagesBase}#/"`,
-        )
-        .replaceAll(
-          '"/site.webmanifest"',
-          `"${githubPagesBase}site.webmanifest"`,
-        );
-      if (rewritten !== source) writeFileSync(file, rewritten);
-    }
-  };
-
-  rewritePublicPaths(client);
-
-  const manifestPath = path.join(client, "site.webmanifest");
-  if (existsSync(manifestPath)) {
-    const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
-    manifest.start_url = `${githubPagesBase}#/`;
-    manifest.scope = githubPagesBase;
-    writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
-  }
-
   copyFileSync(index, path.join(client, "404.html"));
   writeFileSync(path.join(client, ".nojekyll"), "");
 
   console.log(
-    `Prepared GitHub Pages build at ${githubPagesBase}: dist/client`,
+    `Prepared GitHub Pages build at ${githubPagesBase} using Vite base URLs: dist/client`,
   );
 } else {
   for (const file of [worker, hosting]) {

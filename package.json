@@ -7,11 +7,19 @@
     "dev": "vite",
     "dev:local": "vite --host 127.0.0.1 --port 4173 --strictPort",
     "dev:lan": "vite --host 0.0.0.0 --port 4173 --strictPort",
+    "dev:e2e": "vite --host 127.0.0.1 --port 4175 --strictPort",
     "build": "vite build && node scripts/prepare-sites-build.mjs",
+    "build:pages": "GITHUB_PAGES_BASE=/matken-electrical-preview/ VITE_GITHUB_PAGES=true npm run build",
     "check:local": "node scripts/check-local-preview.mjs",
     "preview": "vite preview",
+    "preview:pages": "GITHUB_PAGES_BASE=/matken-electrical-preview/ VITE_GITHUB_PAGES=true vite preview --host 127.0.0.1 --port 4176 --strictPort",
     "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:local": "MATKEN_E2E_MODE=local playwright test",
+    "test:e2e:pages": "MATKEN_E2E_MODE=pages playwright test",
     "test:sites": "node --test tests/sites-worker.test.mjs",
+    "audit:lighthouse": "npm run build:pages && node tests/e2e/run-lighthouse.mjs",
+    "check:bundle": "node scripts/check-bundle-budget.mjs",
     "verify": "node scripts/verify-site.mjs"
   },
   "dependencies": {
@@ -23,10 +31,15 @@
     "vite": "^6.4.3"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.12.1",
+    "@playwright/test": "1.61.1",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
+    "chrome-launcher": "1.2.1",
     "jsdom": "^26.1.0",
+    "lighthouse": "13.4.1",
+    "playwright": "1.61.1",
     "postcss": "^8.5.24",
     "vitest": "^3.2.6"
   }

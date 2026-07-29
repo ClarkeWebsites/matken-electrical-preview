@@ -1,0 +1,86 @@
+name: Matken website quality
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: matken-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.61.1-noble
+    timeout-minutes: 25
+    env:
+      CI: "true"
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Audit production and quality dependencies
+        run: npm audit --audit-level=high
+
+      - name: Run unit, provider, and evidence gates
+        run: |
+          npm test -- --reporter=dot
+          npm run verify
+
+      - name: Build and verify the Sites package
+        run: |
+          npm run build
+          npm run check:bundle
+          npm run test:sites
+
+      - name: Build and verify the GitHub Pages package
+        run: |
+          npm run build:pages
+          GITHUB_PAGES_BASE=/matken-electrical-preview/ npm run check:bundle
+          test -f dist/client/index.html
+          test -f dist/client/404.html
+          test -f dist/client/.nojekyll
+          grep -q '/matken-electrical-preview/assets/' dist/client/index.html
+          grep -q '"start_url": "./"' dist/client/site.webmanifest
+          grep -q '"scope": "./"' dist/client/site.webmanifest
+
+      - name: Run local-router desktop and mobile journeys
+        run: npm run test:e2e:local
+
+      - name: Run Pages-router desktop and mobile journeys
+        run: npm run test:e2e:pages
+
+      - name: Resolve the pinned browser for Lighthouse
+        run: |
+          chrome_path="$(node --input-type=module -e "import { chromium } from 'playwright'; process.stdout.write(chromium.executablePath())")"
+          echo "CHROME_PATH=$chrome_path" >> "$GITHUB_ENV"
+
+      - name: Enforce Lighthouse performance budgets
+        run: npm run audit:lighthouse
+
+      - name: Preserve browser and Lighthouse failure evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: matken-quality-evidence
+          path: |
+            playwright-report
+            test-results/playwright
+            .lighthouseci/reports
+          if-no-files-found: ignore
+          retention-days: 7
