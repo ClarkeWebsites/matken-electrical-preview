@@ -1,10 +1,10 @@
-import { spawn } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { launch } from "chrome-launcher";
 import lighthouse from "lighthouse";
 import { chromium } from "playwright";
+import { preview } from "vite";
 
 const serverOrigin = "http://127.0.0.1:4176";
 const pagesRoot = `${serverOrigin}/matken-electrical-preview/`;
@@ -32,27 +32,9 @@ const profiles = [
   },
 ];
 
-const server = spawn("npm", ["run", "preview:pages"], {
-  cwd: process.cwd(),
-  env: process.env,
-  stdio: ["ignore", "pipe", "pipe"],
-});
-let serverOutput = "";
-server.stdout.on("data", (chunk) => {
-  serverOutput += chunk;
-});
-server.stderr.on("data", (chunk) => {
-  serverOutput += chunk;
-});
-
 const waitForServer = async () => {
   const deadline = Date.now() + 45_000;
   while (Date.now() < deadline) {
-    if (server.exitCode !== null) {
-      throw new Error(
-        `Pages preview exited before Lighthouse started.\n${serverOutput}`,
-      );
-    }
     try {
       const response = await fetch(pagesRoot, {
         signal: AbortSignal.timeout(1_500),
@@ -63,7 +45,7 @@ const waitForServer = async () => {
     }
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
-  throw new Error(`Timed out waiting for the Pages preview.\n${serverOutput}`);
+  throw new Error("Timed out waiting for the Pages preview.");
 };
 
 const assertAtLeast = (profile, label, value, minimum) => {
@@ -93,7 +75,21 @@ const assertAtMost = (profile, label, value, maximum) => {
 };
 
 let chrome;
+let previewServer;
 try {
+  previewServer = await preview({
+    configFile: false,
+    root: process.cwd(),
+    base: "/matken-electrical-preview/",
+    build: {
+      outDir: "dist/client",
+    },
+    preview: {
+      host: "127.0.0.1",
+      port: 4176,
+      strictPort: true,
+    },
+  });
   await waitForServer();
   await mkdir(reportDirectory, { recursive: true });
   chrome = await launch({
@@ -184,5 +180,5 @@ try {
   }
 } finally {
   await chrome?.kill();
-  if (server.exitCode === null) server.kill("SIGTERM");
+  await previewServer?.close();
 }
