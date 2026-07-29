@@ -53,7 +53,11 @@ const warmRequestPage = () => {
   void import("./RequestPage.jsx").catch(() => undefined);
 };
 
-const focusProjectBlueprintEntry = () => {
+const focusProjectBlueprintEntry = (event) => {
+  event.preventDefault();
+  document
+    .querySelector("#project-blueprint")
+    ?.scrollIntoView?.({ block: "start" });
   window.requestAnimationFrame(() => {
     document
       .querySelector("#project-blueprint .blueprint-panel-launch button")
