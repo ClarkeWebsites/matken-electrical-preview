@@ -7,12 +7,12 @@ import {
   within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { App } from "../src/App.jsx";
 import {
   normalizeProjectBlueprint,
   serializeProjectBlueprint,
-} from "../src/components/ProjectBlueprint.jsx";
+} from "../src/lib/projectBlueprintModel.js";
 import {
   calculatePlannerResult,
   createInitialPlannerScenarioState,
@@ -171,6 +171,9 @@ describe("Matken Project Blueprint model", () => {
     const text = serializeProjectBlueprint(blueprint);
     expect(text).toMatch(/MATKEN PROJECT BLUEPRINT/);
     expect(text).toMatch(/Commercial electrical request/);
+    expect(text).toMatch(
+      /did not automatically send its project answers or preparation selections to Matken/i,
+    );
     expect(text).not.toMatch(/Injected Customer|555-0101|injected@example/);
   });
 
@@ -212,6 +215,7 @@ describe("Matken Project Blueprint model", () => {
 
 describe("Matken customer journeys", () => {
   it("renders the home route with verified service paths", async () => {
+    const user = userEvent.setup();
     renderAt("/");
 
     expect(
@@ -228,6 +232,24 @@ describe("Matken customer journeys", () => {
     expect(
       screen.getAllByRole("heading", { name: "Construction" }),
     ).not.toHaveLength(0);
+
+    const quickActions = screen.getByLabelText("Quick actions");
+    const blueprintShortcut = within(quickActions).getByRole("link", {
+      name: /Build my Project Blueprint/i,
+    });
+    expect(blueprintShortcut).toHaveAttribute("href", "#project-blueprint");
+    expect(
+      within(quickActions).queryByRole("link", {
+        name: /Pay an invoice/i,
+      }),
+    ).not.toBeInTheDocument();
+
+    await user.click(blueprintShortcut);
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Start my blueprint" }),
+      ).toHaveFocus(),
+    );
   });
 
   it("builds a private safety-aware Project Blueprint and applies it to a request", async () => {
@@ -296,12 +318,74 @@ describe("Matken customer journeys", () => {
       screen.getByText(/Do not wait on a website request/i),
     ).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Copy" }));
+    const resultArticle = screen.getByRole("article", {
+      name: "Your Matken Project Blueprint",
+    });
+    const copyButton = within(resultArticle).getByRole("button", {
+      name: "Copy Project Blueprint",
+    });
+    const shareButton = within(resultArticle).getByRole("button", {
+      name: "Share Project Blueprint",
+    });
     expect(
-      await screen.findByText(
-        /Project Blueprint copied without contact details/i,
-      ),
+      within(resultArticle).getByRole("button", {
+        name: "Print or save Project Blueprint",
+      }),
     ).toBeInTheDocument();
+
+    await user.click(copyButton);
+    const actionStatus = within(resultArticle).getByRole("status");
+    expect(actionStatus).toHaveTextContent(
+      /Project Blueprint copied without contact details/i,
+    );
+    expect(actionStatus).not.toHaveClass("visually-hidden");
+    expect(actionStatus.closest(".blueprint-result-actions")).not.toBeNull();
+
+    const clipboardWrite = vi
+      .spyOn(navigator.clipboard, "writeText")
+      .mockRejectedValueOnce(new Error("Clipboard unavailable"));
+    await user.click(copyButton);
+    expect(actionStatus).toHaveTextContent(
+      /could not be copied automatically/i,
+    );
+    clipboardWrite.mockRestore();
+
+    const originalShare = navigator.share;
+    Object.defineProperty(navigator, "share", {
+      configurable: true,
+      value: undefined,
+    });
+    await user.click(shareButton);
+    expect(actionStatus).toHaveTextContent(
+      /Project Blueprint copied without contact details/i,
+    );
+
+    const share = vi.fn();
+    Object.defineProperty(navigator, "share", {
+      configurable: true,
+      value: share,
+    });
+    share.mockRejectedValueOnce(
+      new DOMException("Share cancelled", "AbortError"),
+    );
+    await user.click(shareButton);
+    expect(actionStatus).toHaveTextContent(/Sharing was cancelled/i);
+
+    share.mockRejectedValueOnce(new Error("Share unavailable"));
+    await user.click(shareButton);
+    expect(actionStatus).toHaveTextContent(
+      /share sheet could not be opened/i,
+    );
+
+    share.mockResolvedValueOnce(undefined);
+    await user.click(shareButton);
+    expect(actionStatus).toHaveTextContent(
+      /device share sheet was opened/i,
+    );
+    Object.defineProperty(navigator, "share", {
+      configurable: true,
+      value: originalShare,
+    });
 
     await user.click(
       screen.getByRole("link", {
