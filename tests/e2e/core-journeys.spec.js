@@ -12,6 +12,14 @@ test.describe("Matken core customer journeys", () => {
   }) => {
     const assertHealthy = watchPageHealth(page);
     await openStablePage(page, "/");
+    await page.waitForTimeout(250);
+    expect(
+      await page.evaluate(() =>
+        performance
+          .getEntriesByType("resource")
+          .some((entry) => entry.name.includes("ProjectBlueprint")),
+      ),
+    ).toBe(false);
 
     await page.getByRole("button", { name: "Start my blueprint" }).click();
     await page

@@ -199,6 +199,7 @@ function DeferredProjectGallery() {
 
 export function HomePage() {
   const location = useLocation();
+  const blueprintSectionRef = useRef(null);
   const startBlueprintFromService =
     location.state?.startBlueprint === true;
   const returnToBlueprintFromPack =
@@ -224,6 +225,25 @@ export function HomePage() {
     });
     return () => window.cancelAnimationFrame(frame);
   }, [returnToBlueprintFromPack, startBlueprintFromService]);
+
+  useEffect(() => {
+    const target = blueprintSectionRef.current;
+    if (!target || typeof IntersectionObserver !== "function") {
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        warmProjectBlueprint();
+        observer.disconnect();
+      },
+      { rootMargin: "300px 0px" },
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <>
@@ -379,6 +399,7 @@ export function HomePage() {
       </section>
 
       <section
+        ref={blueprintSectionRef}
         className="section section-finder"
         id="project-blueprint"
       >
