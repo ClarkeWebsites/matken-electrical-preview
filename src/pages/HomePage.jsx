@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   Check,
@@ -159,6 +159,41 @@ function HomeFaq() {
           <p>{faq.answer}</p>
         </details>
       ))}
+    </div>
+  );
+}
+
+function DeferredProjectGallery() {
+  const [shouldLoad, setShouldLoad] = useState(false);
+  const triggerRef = useRef(null);
+
+  useEffect(() => {
+    const trigger = triggerRef.current;
+    if (!trigger || typeof IntersectionObserver !== "function") {
+      setShouldLoad(true);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        setShouldLoad(true);
+        observer.disconnect();
+      },
+      { rootMargin: "900px 0px" },
+    );
+
+    observer.observe(trigger);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={triggerRef} data-testid="approved-gallery-trigger">
+      {shouldLoad ? (
+        <Suspense fallback={null}>
+          <LazyApprovedProjectGallery />
+        </Suspense>
+      ) : null}
     </div>
   );
 }
@@ -458,9 +493,7 @@ export function HomePage() {
         </div>
       </section>
 
-      <Suspense fallback={null}>
-        <LazyApprovedProjectGallery />
-      </Suspense>
+      <DeferredProjectGallery />
 
       <section className="section process-section">
         <div className="shell">

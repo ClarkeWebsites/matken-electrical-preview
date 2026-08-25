@@ -446,6 +446,15 @@ test.describe("Matken core customer journeys", () => {
   }) => {
     const assertHealthy = watchPageHealth(page);
     await openStablePage(page, "/");
+    await page.waitForTimeout(250);
+    expect(
+      await page.evaluate(() =>
+        performance
+          .getEntriesByType("resource")
+          .some((entry) => entry.name.includes("ApprovedProjectGallery")),
+      ),
+    ).toBe(false);
+    await page.getByTestId("approved-gallery-trigger").scrollIntoViewIfNeeded();
     await expect(
       page.getByRole("heading", {
         name: /A closer look at approved project photography/i,
