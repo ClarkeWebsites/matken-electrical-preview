@@ -518,6 +518,10 @@ describe("Matken customer journeys", () => {
     await user.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(openingPhoto).toHaveFocus();
+    await user.click(openingPhoto);
+    fireEvent.click(document.querySelector(".gallery-photo-viewer"));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(openingPhoto).toHaveFocus();
     await user.click(
       screen.getByRole("button", {
         name: /Show 12 more approved photos \(12 of 129\)/i,

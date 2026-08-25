@@ -471,6 +471,19 @@ test.describe("Matken core customer journeys", () => {
     ).toBeFocused();
     await page
       .getByRole("button", {
+        name: /Open Approved Matken project photograph 004/i,
+      })
+      .click();
+    await expect(page.getByRole("dialog", { name: /Photo 1 of 129/i })).toBeVisible();
+    await page.locator(".gallery-photo-viewer").click({ position: { x: 8, y: 8 } });
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(
+      page.getByRole("button", {
+        name: /Open Approved Matken project photograph 004/i,
+      }),
+    ).toBeFocused();
+    await page
+      .getByRole("button", {
         name: /Show 12 more approved photos \(12 of 129\)/i,
       })
       .click();

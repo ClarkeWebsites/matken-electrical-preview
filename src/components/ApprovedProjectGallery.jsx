@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { approvedProjectPhotos } from "../data/approvedProjectPhotos.js";
 import { publicAssetUrl } from "../lib/appUrl.js";
 
@@ -148,14 +149,20 @@ export function ApprovedProjectGallery() {
           </button>
         ) : null}
       </div>
-      {selectedPhoto ? (
-        <div className="gallery-photo-viewer" role="presentation">
+      {selectedPhoto
+        ? createPortal(
+        <div
+          className="gallery-photo-viewer"
+          role="presentation"
+          onClick={closeViewer}
+        >
           <div
             ref={dialogRef}
             className="gallery-photo-dialog"
             role="dialog"
             aria-modal="true"
             aria-label={`Photo ${selectedPhotoIndex + 1} of ${orderedProjectPhotos.length}`}
+            onClick={(event) => event.stopPropagation()}
           >
             <div className="gallery-photo-dialog-controls">
               <span aria-live="polite">
@@ -186,8 +193,10 @@ export function ApprovedProjectGallery() {
               </button>
             </div>
           </div>
-        </div>
-      ) : null}
+        </div>,
+        document.body,
+      )
+        : null}
     </section>
   );
 }
