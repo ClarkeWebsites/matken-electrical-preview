@@ -292,7 +292,6 @@ export function SiteLayout() {
           <div className="shell utility-inner">
             <span>Call is live · planning tools stay private</span>
             <div className="utility-actions">
-              <Link to="/project-status">Track a project</Link>
               <a href={`tel:${business.phoneHref}`}>
                 <Phone size={15} weight="fill" aria-hidden="true" />
                 {business.phoneDisplay}
@@ -354,7 +353,7 @@ export function SiteLayout() {
               to="/request"
               {...routeWarmHandlers("/request")}
             >
-              Request service
+              Prepare a request
               <ArrowRight size={17} weight="bold" aria-hidden="true" />
             </Link>
             <button
@@ -423,17 +422,6 @@ export function SiteLayout() {
                 Project Pack
                 <ArrowRight size={18} aria-hidden="true" />
               </Link>
-              <Link to="/pay-invoice" {...routeWarmHandlers("/pay-invoice")}>
-                Pay an invoice
-                <ArrowRight size={18} aria-hidden="true" />
-              </Link>
-              <Link
-                to="/project-status"
-                {...routeWarmHandlers("/project-status")}
-              >
-                Track a project
-                <ArrowRight size={18} aria-hidden="true" />
-              </Link>
             </nav>
           </div>
         ) : null}
@@ -495,10 +483,8 @@ export function SiteLayout() {
           </div>
           <div>
             <h2>Get started</h2>
-            <Link to="/request">Request service</Link>
+            <Link to="/request">Prepare a request</Link>
             <Link to="/project-pack">Project Pack</Link>
-            <Link to="/project-status">Track a project</Link>
-            <Link to="/pay-invoice">Pay an invoice</Link>
             <a href={`tel:${business.phoneHref}`}>Call Matken</a>
             <a
               href={publicAssetUrl("/assets/matken-contact.vcf")}

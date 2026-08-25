@@ -418,6 +418,6 @@ export const faqs = [
   {
     question: "Are the project photos completed Matken jobs?",
     answer:
-      "Not unless a caption explicitly says so. Images in this prototype are representative editorial references pending approved Matken project photography.",
+      "The project gallery uses client-approved photography for generic display. No image should be treated as a named project, location, result, or customer story unless an explicitly approved caption says so. Service-page editorial images are separately labelled as representative.",
   },
 ];

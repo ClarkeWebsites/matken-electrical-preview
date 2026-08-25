@@ -66,14 +66,25 @@
       type="font/woff2"
       crossorigin
     />
-    <link
-      rel="preload"
-      as="image"
-      href="%BASE_URL%assets/optimized/matken-project-hero-960.webp"
-      imagesrcset="%BASE_URL%assets/projects/thumbs/img-20260824-wa0000.webp 640w, %BASE_URL%assets/optimized/matken-project-hero-960.webp 960w, %BASE_URL%assets/projects/img-20260824-wa0000.webp 1440w"
-      imagesizes="(max-width: 920px) 100vw, 54vw"
-      fetchpriority="high"
-    />
+    <script>
+      {
+        const basePath = "%BASE_URL%";
+        const appRoute = location.hash.startsWith("#/")
+          ? location.hash.slice(1).split("?")[0]
+          : `/${location.pathname.slice(basePath.length).replace(/^\/+/, "")}`;
+
+        if (appRoute === "/") {
+          const preload = document.createElement("link");
+          preload.rel = "preload";
+          preload.as = "image";
+          preload.href = `${basePath}assets/optimized/matken-project-hero-960.webp`;
+          preload.imageSrcset = `${basePath}assets/projects/thumbs/img-20260824-wa0000.webp 640w, ${basePath}assets/optimized/matken-project-hero-960.webp 960w, ${basePath}assets/projects/img-20260824-wa0000.webp 1440w`;
+          preload.imageSizes = "(max-width: 920px) 100vw, 54vw";
+          preload.fetchPriority = "high";
+          document.head.append(preload);
+        }
+      }
+    </script>
     <title>Matken Electrical | Electrical, Solar & Construction</title>
   </head>
   <body>

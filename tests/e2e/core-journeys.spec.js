@@ -397,11 +397,19 @@ test.describe("Matken core customer journeys", () => {
   }) => {
     const assertHealthy = watchPageHealth(page);
     await openStablePage(page, "/");
+    await expect(
+      page.locator('header a[href*="pay-invoice"], footer a[href*="pay-invoice"], header a[href*="project-status"], footer a[href*="project-status"]'),
+    ).toHaveCount(0);
 
     await page.getByRole("button", { name: "Search this website" }).click();
-    await page
-      .getByRole("searchbox", { name: "Search this website" })
-      .fill("battery backup");
+    const searchbox = page.getByRole("searchbox", {
+      name: "Search this website",
+    });
+    await searchbox.fill("invoice payment");
+    await expect(
+      page.locator('.site-search-dialog a[href*="pay-invoice"], .site-search-dialog a[href*="project-status"]'),
+    ).toHaveCount(0);
+    await searchbox.fill("battery backup");
     await page
       .getByRole("link", { name: /Solar & storage/i })
       .first()
@@ -475,43 +483,43 @@ test.describe("Matken core customer journeys", () => {
     );
     await page
       .getByRole("button", {
-        name: /Open Approved Matken project photograph 004/i,
+        name: /Open project photograph 1 of \d+/i,
       })
       .click();
-    await expect(page.getByRole("dialog", { name: /Photo 1 of 129/i })).toBeVisible();
+    await expect(page.getByRole("dialog", { name: /Photo 1 of \d+/i })).toBeVisible();
     await page.keyboard.press("ArrowRight");
-    await expect(page.getByRole("dialog", { name: /Photo 2 of 129/i })).toBeVisible();
+    await expect(page.getByRole("dialog", { name: /Photo 2 of \d+/i })).toBeVisible();
     await page.keyboard.press("Shift+Tab");
     await expect(page.getByRole("button", { name: "Next photo" })).toBeFocused();
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toHaveCount(0);
     await expect(
       page.getByRole("button", {
-        name: /Open Approved Matken project photograph 004/i,
+        name: /Open project photograph 1 of \d+/i,
       }),
     ).toBeFocused();
     await page
       .getByRole("button", {
-        name: /Open Approved Matken project photograph 004/i,
+        name: /Open project photograph 1 of \d+/i,
       })
       .click();
-    await expect(page.getByRole("dialog", { name: /Photo 1 of 129/i })).toBeVisible();
+    await expect(page.getByRole("dialog", { name: /Photo 1 of \d+/i })).toBeVisible();
     await page.locator(".gallery-photo-viewer").click({ position: { x: 8, y: 8 } });
     await expect(page.getByRole("dialog")).toHaveCount(0);
     await expect(
       page.getByRole("button", {
-        name: /Open Approved Matken project photograph 004/i,
+        name: /Open project photograph 1 of \d+/i,
       }),
     ).toBeFocused();
     await page
       .getByRole("button", {
-        name: /Show 12 more approved photos \(12 of 129\)/i,
+        name: /Show 12 more approved photos \(12 of \d+\)/i,
       })
       .click();
     await expect(page.locator(".approved-photo-grid img")).toHaveCount(24);
     await expect(
       page.getByRole("button", {
-        name: /Show 12 more approved photos \(24 of 129\)/i,
+        name: /Show 12 more approved photos \(24 of \d+\)/i,
       }),
     ).toBeVisible();
     await expect(
@@ -548,6 +556,90 @@ test.describe("Matken core customer journeys", () => {
     ).toBeVisible();
     await expect(page.getByText("Choose a primary service.")).toBeVisible();
     await expect(page.locator(".mobile-action-bar")).toHaveCount(0);
+    assertHealthy();
+  });
+
+  test("keeps mobile navigation usable within the viewport", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile-390", "mobile layout check");
+    const assertHealthy = watchPageHealth(page);
+    await openStablePage(page, "/");
+    await page.getByRole("button", { name: "Open navigation" }).click();
+
+    const menu = page.getByRole("dialog", { name: "Site navigation" });
+    await expect(menu).toBeVisible();
+    await expect(page.locator(".mobile-action-bar")).toBeHidden();
+    const geometry = await menu.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      return {
+        bottom: rect.bottom,
+        clientHeight: element.clientHeight,
+        scrollHeight: element.scrollHeight,
+        viewportHeight: window.innerHeight,
+      };
+    });
+    expect(geometry.clientHeight).toBeGreaterThan(geometry.viewportHeight * 0.7);
+    expect(geometry.bottom).toBeLessThanOrEqual(geometry.viewportHeight + 1);
+    expect(geometry.scrollHeight).toBeGreaterThanOrEqual(geometry.clientHeight);
+
+    const finalLink = menu.getByRole("link", { name: "Project Pack" }).last();
+    await finalLink.scrollIntoViewIfNeeded();
+    await expect(finalLink).toBeVisible();
+    assertHealthy();
+  });
+
+  test("keeps mobile request actions clear of the parish field", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile-390", "mobile layout check");
+    const assertHealthy = watchPageHealth(page);
+    await openStablePage(page, "/request");
+    await page.locator("form.request-form").scrollIntoViewIfNeeded();
+
+    const geometry = await page.evaluate(() => {
+      const parish = document.querySelector('[data-request-field="parish"]');
+      const actions = document.querySelector(".form-actions");
+      const parishRect = parish?.getBoundingClientRect();
+      const actionsRect = actions?.getBoundingClientRect();
+      if (!parishRect || !actionsRect) return null;
+      return {
+        actionPosition: getComputedStyle(actions).position,
+        actionsTop: actionsRect.top,
+        overlap: Math.max(
+          0,
+          Math.min(parishRect.bottom, actionsRect.bottom) -
+            Math.max(parishRect.top, actionsRect.top),
+        ),
+        parishBottom: parishRect.bottom,
+      };
+    });
+
+    expect(geometry).not.toBeNull();
+    expect(geometry.actionPosition).toBe("static");
+    expect(geometry.overlap).toBe(0);
+    expect(geometry.parishBottom).toBeLessThanOrEqual(geometry.actionsTop);
+    await page.locator(".form-actions").scrollIntoViewIfNeeded();
+    await expect(page.getByRole("button", { name: "Continue" })).toBeVisible();
+    assertHealthy();
+  });
+
+  test("labels shared request links as preparation", async ({ page }) => {
+    const assertHealthy = watchPageHealth(page);
+    await openStablePage(page, "/");
+    await expect(
+      page.locator('a[href*="request"]', { hasText: "Request service" }),
+    ).toHaveCount(0);
+    await expect(
+      page.locator('.site-header a[href*="request"]', {
+        hasText: "Prepare a request",
+      }),
+    ).toHaveAttribute("href", /request/);
+    await expect(
+      page.locator('.site-footer a[href*="request"]', {
+        hasText: "Prepare a request",
+      }),
+    ).toHaveCount(2);
     assertHealthy();
   });
 });

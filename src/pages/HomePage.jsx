@@ -279,7 +279,7 @@ export function HomePage() {
           <div className="hero-media">
             <OptimizedImage
               src="/assets/projects/img-20260824-wa0000.webp"
-              alt="Approved aerial project photograph showing a rooftop solar installation"
+              alt=""
               eager
               sizes="(max-width: 920px) 100vw, 54vw"
             />

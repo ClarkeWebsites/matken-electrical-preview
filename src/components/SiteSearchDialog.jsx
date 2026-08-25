@@ -59,23 +59,6 @@ const searchItems = [
       "download print pdf pack blueprint planner readiness summary handoff",
   },
   {
-    type: "Customer access",
-    title: "Invoice payment access",
-    description:
-      "See how private invoice lookup will work after a payment provider is approved. This preview does not look up invoices or take payment.",
-    to: "/pay-invoice",
-    keywords: "invoice billing receipt payment card secure pay preview gated",
-  },
-  {
-    type: "Customer access",
-    title: "Project status",
-    description:
-      "Request a private one-time link after project tracking is connected. This preview does not look up projects or send messages.",
-    to: "/project-status",
-    keywords:
-      "track project progress update schedule status reference verification email sms preview gated",
-  },
-  {
     type: "Learn",
     title: "Planning resources",
     description:
@@ -130,7 +113,6 @@ const suggestedSearches = [
   "Electrical panel",
   "Solar consultation",
   "Construction scope",
-  "Invoice payment",
 ];
 
 function findResults(query) {

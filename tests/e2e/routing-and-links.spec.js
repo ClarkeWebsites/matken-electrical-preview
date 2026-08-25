@@ -113,4 +113,39 @@ test.describe("route, asset, and base-path integrity", () => {
 
     assertHealthy();
   });
+
+  test("preloads the project hero only on the homepage", async ({ page }) => {
+    const assertHealthy = watchPageHealth(page);
+    const heroAssets = [
+      "matken-project-hero-960.webp",
+      "img-20260824-wa0000.webp",
+    ];
+
+    await openStablePage(page, "/planner");
+    expect(
+      await page.evaluate(
+        (filenames) =>
+          performance
+            .getEntriesByType("resource")
+            .some((entry) =>
+              filenames.some((filename) => entry.name.includes(filename)),
+            ),
+        heroAssets,
+      ),
+    ).toBe(false);
+
+    await openStablePage(page, "/");
+    expect(
+      await page.evaluate(
+        (filenames) =>
+          performance
+            .getEntriesByType("resource")
+            .some((entry) =>
+              filenames.some((filename) => entry.name.includes(filename)),
+            ),
+        heroAssets,
+      ),
+    ).toBe(true);
+    assertHealthy();
+  });
 });

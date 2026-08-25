@@ -2317,6 +2317,10 @@ p {
   display: none;
 }
 
+.mobile-action-bar[aria-hidden="true"] {
+  display: none;
+}
+
 /* Route loading and recovery */
 
 .route-state {
@@ -2679,7 +2683,7 @@ p {
 }
 
 .pathway-list span {
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.5);
   font-size: 0.7rem;
   font-weight: 800;
 }
@@ -5905,12 +5909,6 @@ input[type="range"]::-webkit-slider-thumb {
   }
 }
 
-@media (max-width: 620px) {
-  .utility-actions > a:first-child {
-    display: none;
-  }
-}
-
 /* Approval-gated Matken project stories */
 
 .verified-project-stories {
@@ -6245,6 +6243,10 @@ input[type="range"]::-webkit-slider-thumb {
   background: var(--navy-950);
 }
 
+.approved-project-gallery .section-index {
+  color: var(--sun);
+}
+
 .approved-project-gallery .section-heading h2,
 .approved-project-gallery .section-heading p {
   color: var(--white);
@@ -6310,9 +6312,23 @@ input[type="range"]::-webkit-slider-thumb {
   background: var(--warm);
 }
 
+.page-hero-services {
+  padding-block: 64px 58px;
+}
+
+.page-hero-services h1 {
+  font-size: clamp(3rem, 5.6vw, 5.6rem);
+}
+
+.services-overview-list {
+  padding-block: 36px 110px;
+}
+
 @media (max-width: 920px) {
+  .site-header { backdrop-filter: none; }
   .utility-bar { display: block; }
   .header-inner { min-height: 76px; }
+  .mobile-menu { inset: 110px 0 0; }
   .hero-grid { min-height: auto; display: grid; }
   .hero-copy { width: auto; margin: 0; transform: none; padding: 56px 0 22px; background: transparent; box-shadow: none; }
   .hero-media { position: relative; inset: auto; min-height: 560px; }
@@ -6324,10 +6340,17 @@ input[type="range"]::-webkit-slider-thumb {
 
 @media (max-width: 680px) {
   .header-call { display: none; }
-  .hero-copy { width: 100%; padding-top: 38px; }
-  .hero-copy h1 { font-size: clamp(2.8rem, 13vw, 4rem); }
-  .hero-actions .button { width: 100%; }
-  .hero-media, .hero-media > img { min-height: 430px; }
+  .hero-copy { width: 100%; padding-top: 28px; }
+  .hero-copy h1 { margin-bottom: 16px; font-size: clamp(2.5rem, 11.5vw, 3.35rem); }
+  .hero-copy > p { margin-bottom: 18px; }
+  .hero-actions { display: grid; grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr); }
+  .hero-actions .button { width: 100%; min-width: 0; padding-inline: 12px; }
+  .hero-actions .text-link { grid-column: 1 / -1; }
+  .hero-live-line { padding-top: 12px; font-size: 0.78rem; }
+  .hero-media,
+  .hero-media > img,
+  .hero-media > .optimized-picture,
+  .hero-media > .optimized-picture > img { min-height: 360px; }
   .hero-rail { margin-inline: 0; width: 100%; }
   .service-feature-list { grid-template-columns: 1fr; }
   .service-feature, .service-feature:last-child { grid-column: auto; min-height: 430px; }

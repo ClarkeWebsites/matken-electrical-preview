@@ -1,6 +1,13 @@
-import { access, readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { access, readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
+import { approvedProjectPhotos } from "../src/data/approvedProjectPhotos.js";
+import {
+  projectPhotoSlugFor,
+  validatePublicationManifest,
+  webpDimensions,
+} from "./project-photo-manifest.mjs";
 
 const root = process.cwd();
 const requiredFiles = [
@@ -20,8 +27,12 @@ const requiredFiles = [
   "src/pages/ProjectPackPage.jsx",
   "src/pages/StatusPage.jsx",
   "src/pages/ContentPages.jsx",
+  "src/components/ApprovedProjectGallery.jsx",
   "src/components/ApprovedProjectStories.jsx",
+  "src/data/approvedProjectPhotos.js",
   "src/data/projectStories.js",
+  "scripts/project-photo-manifest.mjs",
+  "pictures and videos/00-client-review/PHOTO_PUBLICATION_MANIFEST.json",
   "public/assets/matken-logo-source.png",
   "public/assets/matken-hero-solar.jpg",
   "public/assets/service-electrical.jpg",
@@ -81,6 +92,126 @@ const sourceFiles = requiredFiles.filter((file) =>
 
 for (const file of requiredFiles) {
   await access(path.join(root, file));
+}
+
+const publicationManifest = validatePublicationManifest(
+  JSON.parse(
+    await readFile(
+      path.join(
+        root,
+        "pictures and videos/00-client-review/PHOTO_PUBLICATION_MANIFEST.json",
+      ),
+      "utf8",
+    ),
+  ),
+);
+if (approvedProjectPhotos.length !== publicationManifest.photos.length) {
+  throw new Error(
+    "Generated project-photo data must match the explicit publication manifest.",
+  );
+}
+
+const manifestPhotosById = new Map(
+  publicationManifest.photos.map((photo) => [photo.id, photo]),
+);
+const projectAssetDirectory = path.join(root, "public/assets/projects");
+const projectThumbnailDirectory = path.join(projectAssetDirectory, "thumbs");
+const expectedProjectAssetNames = new Set();
+const fullAssetHashes = new Set();
+const thumbnailAssetHashes = new Set();
+
+for (const photo of approvedProjectPhotos) {
+  const manifestPhoto = manifestPhotosById.get(photo.id);
+  if (!manifestPhoto) {
+    throw new Error(`Generated photo ${photo.id} is absent from the manifest.`);
+  }
+  const filename = `${projectPhotoSlugFor(manifestPhoto.source)}.webp`;
+  const expectedSource = `/assets/projects/${filename}`;
+  if (
+    photo.src !== expectedSource ||
+    photo.alt !== (manifestPhoto.altText || "") ||
+    photo.altStatus !== (manifestPhoto.altText === null ? "pending" : "approved") ||
+    photo.featured !== (manifestPhoto.featured === true) ||
+    Object.hasOwn(photo, "source")
+  ) {
+    throw new Error(`Generated photo ${photo.id} drifted from its manifest record.`);
+  }
+  for (const field of ["width", "height", "thumbnailWidth", "thumbnailHeight"]) {
+    if (!Number.isInteger(photo[field]) || photo[field] < 1) {
+      throw new Error(`Generated photo ${photo.id} has invalid ${field}.`);
+    }
+  }
+
+  const fullAsset = await readFile(path.join(projectAssetDirectory, filename));
+  const thumbnailAsset = await readFile(
+    path.join(projectThumbnailDirectory, filename),
+  );
+  const fullDimensions = webpDimensions(fullAsset);
+  const thumbnailDimensions = webpDimensions(thumbnailAsset);
+  if (
+    fullDimensions.width !== photo.width ||
+    fullDimensions.height !== photo.height ||
+    thumbnailDimensions.width !== photo.thumbnailWidth ||
+    thumbnailDimensions.height !== photo.thumbnailHeight
+  ) {
+    throw new Error(`Generated photo ${photo.id} has stale image dimensions.`);
+  }
+
+  const fullHash = createHash("sha256").update(fullAsset).digest("hex");
+  const thumbnailHash = createHash("sha256")
+    .update(thumbnailAsset)
+    .digest("hex");
+  if (fullAssetHashes.has(fullHash) || thumbnailAssetHashes.has(thumbnailHash)) {
+    throw new Error(`Generated photo ${photo.id} duplicates another derivative.`);
+  }
+  fullAssetHashes.add(fullHash);
+  thumbnailAssetHashes.add(thumbnailHash);
+  expectedProjectAssetNames.add(filename);
+}
+
+const generatedFullAssetNames = (
+  await readdir(projectAssetDirectory, { withFileTypes: true })
+)
+  .filter((entry) => entry.isFile() && entry.name.endsWith(".webp"))
+  .map((entry) => entry.name)
+  .sort();
+const generatedThumbnailNames = (
+  await readdir(projectThumbnailDirectory, { withFileTypes: true })
+)
+  .filter((entry) => entry.isFile() && entry.name.endsWith(".webp"))
+  .map((entry) => entry.name)
+  .sort();
+const expectedNames = [...expectedProjectAssetNames].sort();
+if (
+  JSON.stringify(generatedFullAssetNames) !== JSON.stringify(expectedNames) ||
+  JSON.stringify(generatedThumbnailNames) !== JSON.stringify(expectedNames)
+) {
+  throw new Error(
+    "Generated project-photo directories contain missing or stale derivatives.",
+  );
+}
+
+const homepageManifestPhoto = publicationManifest.photos.find(
+  (photo) => photo.homepageHero === true,
+);
+const homepageSource = await readFile(
+  path.join(root, "src/pages/HomePage.jsx"),
+  "utf8",
+);
+if (
+  !homepageSource.includes(
+    `/assets/projects/${projectPhotoSlugFor(homepageManifestPhoto.source)}.webp`,
+  )
+) {
+  throw new Error("Homepage hero must remain linked to the approved manifest photo.");
+}
+
+const ignoreSource = await readFile(path.join(root, ".gitignore"), "utf8");
+if (
+  !ignoreSource.includes("/pictures and videos/*") ||
+  !ignoreSource.includes("!/pictures and videos/00-client-review/**")
+) {
+  throw new Error("Private client-photo originals must remain ignored.");
 }
 
 const appSource = await readFile(path.join(root, "src/App.jsx"), "utf8");

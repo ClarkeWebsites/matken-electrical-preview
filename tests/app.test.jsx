@@ -486,32 +486,30 @@ describe("Matken customer journeys", () => {
         name: /A closer look at approved project photography/i,
       }),
     ).toBeInTheDocument();
-    expect(
-      screen.getAllByRole("img", {
-        name: /Approved Matken project photograph/i,
-      }),
-    ).toHaveLength(12);
-    expect(
-      screen.getAllByRole("img", {
-        name: /Approved Matken project photograph/i,
-      })[0],
-    ).toHaveAttribute(
+    const galleryImages = document.querySelectorAll(
+      ".approved-photo-grid img",
+    );
+    expect(galleryImages).toHaveLength(12);
+    expect(galleryImages[0]).toHaveAttribute(
       "src",
       "/assets/projects/thumbs/img-20260824-wa0000.webp",
     );
+    expect(galleryImages[0]).toHaveAttribute("alt", "");
+    expect(galleryImages[0]).toHaveAttribute("width", "640");
+    expect(galleryImages[0]).toHaveAttribute("height", "360");
     const openingPhoto = screen.getByRole("button", {
-      name: /Open Approved Matken project photograph 004/i,
+      name: /Open project photograph 1 of 94/i,
     });
     await user.click(openingPhoto);
     expect(
-      screen.getByRole("dialog", { name: /Photo 1 of 129/i }),
+      screen.getByRole("dialog", { name: /Photo 1 of 94/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("dialog", { name: /Photo 1 of 129/i }).querySelector("img"),
+      screen.getByRole("dialog", { name: /Photo 1 of 94/i }).querySelector("img"),
     ).toHaveAttribute("src", "/assets/projects/img-20260824-wa0000.webp");
     await user.keyboard("{ArrowRight}");
     expect(
-      screen.getByRole("dialog", { name: /Photo 2 of 129/i }),
+      screen.getByRole("dialog", { name: /Photo 2 of 94/i }),
     ).toBeInTheDocument();
     await user.tab();
     expect(
@@ -530,17 +528,15 @@ describe("Matken customer journeys", () => {
     expect(openingPhoto).toHaveFocus();
     await user.click(
       screen.getByRole("button", {
-        name: /Show 12 more approved photos \(12 of 129\)/i,
+        name: /Show 12 more approved photos \(12 of 94\)/i,
       }),
     );
-    expect(
-      screen.getAllByRole("img", {
-        name: /Approved Matken project photograph/i,
-      }),
-    ).toHaveLength(24);
+    expect(document.querySelectorAll(".approved-photo-grid img")).toHaveLength(
+      24,
+    );
     expect(
       screen.getByRole("button", {
-        name: /Show 12 more approved photos \(24 of 129\)/i,
+        name: /Show 12 more approved photos \(24 of 94\)/i,
       }),
     ).toBeInTheDocument();
     expect(
@@ -854,7 +850,7 @@ describe("Matken customer journeys", () => {
     ).toBeInTheDocument();
   });
 
-  it("opens a matching route from local search without sending the query", async () => {
+  it("opens a public service route from local search without sending the query", async () => {
     const user = userEvent.setup();
     renderAt("/");
 
@@ -863,18 +859,18 @@ describe("Matken customer journeys", () => {
     );
     await user.type(
       await screen.findByRole("searchbox", { name: "Search this website" }),
-      "invoice payment",
+      "battery backup",
     );
     await user.click(
-      await screen.findByRole("link", { name: /Invoice payment access/i }),
+      await screen.findByRole("link", { name: /Solar & storage/i }),
     );
 
     await waitFor(() =>
-      expect(window.location.pathname).toBe("/pay-invoice"),
+      expect(window.location.pathname).toBe("/services/solar"),
     );
     expect(
       await screen.findByRole("heading", {
-        name: "Pay through a private link—not a public invoice page.",
+        name: "Solar & storage",
       }),
     ).toBeInTheDocument();
     expect(

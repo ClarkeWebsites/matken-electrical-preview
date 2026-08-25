@@ -1,6 +1,6 @@
 # Matken Website Asset Sources
 
-All photography in this prototype is representative editorial imagery. It must not be described as a Matken employee, customer, installation, build, or completed project.
+Photography has two distinct publication classes. Service-page editorial imagery is representative and must not be described as a Matken employee, customer, installation, build, or completed project. The homepage hero and project gallery use client-approved photography only within the generic-display boundary documented below.
 
 ## Brand reference
 
@@ -62,11 +62,25 @@ All photography in this prototype is representative editorial imagery. It must n
   publication rule, and representative-image disclosure remain identical to
   each source image.
 
+## Client-approved generic project photography
+
+- Private originals: `pictures and videos/` (intentionally ignored; never copied into the repository).
+- Approval allowlist: `pictures and videos/00-client-review/PHOTO_PUBLICATION_MANIFEST.json`.
+- Public derivatives: `public/assets/projects/` and `public/assets/projects/thumbs/`.
+- Generated data: `src/data/approvedProjectPhotos.js`.
+- Publication scope: generic gallery and selected homepage-hero display only.
+- Explicitly excluded until separately approved: customer or property identity, locations, project categories, equipment claims, performance or outcome claims, captions, case studies, and descriptive alt text.
+- Accessibility boundary: images without separately approved descriptions use empty alt text; the viewer controls retain positional accessible labels.
+
+The publishing script fails closed when an original is absent from the allowlist, an approval record is incomplete, derivative hashes repeat, dimensions drift, or stale generated files remain.
+
 ## Publication rule
 
-Before production launch, Matken should either:
+For the documented editorial service imagery, Matken should either:
 
 1. approve continued use of each editorial image with its representative-image disclosure; or
-2. supply approved client-owned photography with project captions and publication permission.
+2. replace it with client-owned photography whose intended placement and publication scope are approved.
 
 Removing the disclosure without replacing the imagery and confirming provenance is not approved.
+
+Generic project-gallery approval does not authorize descriptive captions, project stories, customer details, locations, results, or removal of service-image disclosures.

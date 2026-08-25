@@ -66,5 +66,13 @@ export default defineConfig({
         viewport: { width: 390, height: 844 },
       },
     },
+    {
+      name: "webkit-iphone-smoke",
+      testMatch: /routing-and-links\.spec\.js/,
+      use: {
+        ...devices["iPhone 13"],
+        browserName: "webkit",
+      },
+    },
   ],
 });

@@ -1,64 +1,97 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import {
+  copyFileSync,
+  existsSync,
+  lstatSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
-import { basename, join } from "node:path";
+import { join } from "node:path";
+import {
+  projectPhotoSlugFor,
+  validatePublicationManifest,
+  webpDimensions,
+} from "./project-photo-manifest.mjs";
 
 const workspaceRoot = process.cwd();
 const sourceDirectory = join(workspaceRoot, "pictures and videos");
+const reviewDirectory = join(sourceDirectory, "00-client-review");
+const manifestFile = join(reviewDirectory, "PHOTO_PUBLICATION_MANIFEST.json");
 const outputDirectory = join(workspaceRoot, "public", "assets", "projects");
 const thumbnailDirectory = join(outputDirectory, "thumbs");
-const optimizedAssetDirectory = join(workspaceRoot, "public", "assets", "optimized");
+const optimizedAssetDirectory = join(
+  workspaceRoot,
+  "public",
+  "assets",
+  "optimized",
+);
 const dataFile = join(workspaceRoot, "src", "data", "approvedProjectPhotos.js");
-const supportedExtensions = /\.(?:jpe?g|heic|heif)$/i;
 const temporaryDirectory = join(tmpdir(), `matken-project-photos-${process.pid}`);
-const featuredFilenames = new Set([
-  "IMG-20260824-WA0000.jpg",
-  "IMG-20260824-WA0010.jpg",
-  "IMG-20260824-WA0020.jpg",
-  "IMG-20260824-WA0030.jpg",
-  "IMG-20260824-WA0040.jpg",
-  "IMG-20260824-WA0050.jpg",
-  "IMG-20260824-WA0060.jpg",
-  "IMG-20260824-WA0071.jpg",
-  "IMG-20260824-WA0081.jpg",
-  "IMG-20260824-WA0091.jpg",
-  "IMG-20260824-WA0101.jpg",
-  "motion_photo_1137505257620963082.jpg",
-]);
-const homepageHeroFilename = "IMG-20260824-WA0000.jpg";
+const stagedOutputDirectory = join(temporaryDirectory, "projects");
+const stagedThumbnailDirectory = join(stagedOutputDirectory, "thumbs");
+const stagedDataFile = join(temporaryDirectory, "approvedProjectPhotos.js");
+const stagedHomepageHero = join(temporaryDirectory, "matken-project-hero-960.webp");
 
 const run = (command, arguments_) =>
-  execFileSync(command, arguments_, { stdio: "inherit" });
+  execFileSync(command, arguments_, {
+    stdio: ["ignore", "ignore", "inherit"],
+  });
 
-const slugFor = (filename) =>
-  basename(filename, filename.slice(filename.lastIndexOf(".")))
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
+const fileHash = (file) =>
+  createHash("sha256").update(readFileSync(file)).digest("hex");
 
-const photoFiles = readdirSync(sourceDirectory)
-  .filter((filename) => supportedExtensions.test(filename))
-  .sort((left, right) => left.localeCompare(right));
+const syncGeneratedWebps = (stagedDirectory, targetDirectory, expectedNames) => {
+  mkdirSync(targetDirectory, { recursive: true });
+  for (const filename of expectedNames) {
+    copyFileSync(join(stagedDirectory, filename), join(targetDirectory, filename));
+  }
 
-if (!photoFiles.length) {
-  throw new Error("No approved project photos were found to publish.");
+  const staleNames = readdirSync(targetDirectory).filter(
+    (filename) => filename.endsWith(".webp") && !expectedNames.has(filename),
+  );
+  for (const filename of staleNames) {
+    rmSync(join(targetDirectory, filename));
+  }
+  return staleNames;
+};
+
+if (!existsSync(manifestFile)) {
+  throw new Error(`Missing project-photo publication manifest: ${manifestFile}`);
 }
 
-mkdirSync(outputDirectory, { recursive: true });
-mkdirSync(thumbnailDirectory, { recursive: true });
-mkdirSync(optimizedAssetDirectory, { recursive: true });
-mkdirSync(temporaryDirectory, { recursive: true });
+const manifest = validatePublicationManifest(
+  JSON.parse(readFileSync(manifestFile, "utf8")),
+);
+const homepageHero = manifest.photos.find((photo) => photo.homepageHero === true);
+
+mkdirSync(stagedOutputDirectory, { recursive: true });
+mkdirSync(stagedThumbnailDirectory, { recursive: true });
 
 try {
-  photoFiles.forEach((filename, index) => {
-    const source = join(sourceDirectory, filename);
+  const records = [];
+  const fullHashes = new Map();
+  const thumbnailHashes = new Map();
+  const expectedNames = new Set();
+
+  manifest.photos.forEach((photo, index) => {
+    const source = join(sourceDirectory, photo.source);
+    if (!existsSync(source) || !lstatSync(source).isFile()) {
+      throw new Error(
+        `Approved source photo is missing or not a regular file: ${photo.source}`,
+      );
+    }
+
+    const slug = projectPhotoSlugFor(photo.source);
+    const filename = `${slug}.webp`;
     const resizedJpeg = join(temporaryDirectory, `${index + 1}.jpg`);
     const thumbnailJpeg = join(temporaryDirectory, `${index + 1}-thumb.jpg`);
-    const output = join(outputDirectory, `${slugFor(filename)}.webp`);
-    const thumbnailOutput = join(
-      thumbnailDirectory,
-      `${slugFor(filename)}.webp`,
-    );
+    const output = join(stagedOutputDirectory, filename);
+    const thumbnailOutput = join(stagedThumbnailDirectory, filename);
 
     run("sips", [
       "--resampleHeightWidthMax",
@@ -95,6 +128,34 @@ try {
       "-o",
       thumbnailOutput,
     ]);
+
+    const fullHash = fileHash(output);
+    const thumbnailHash = fileHash(thumbnailOutput);
+    const duplicateFull = fullHashes.get(fullHash);
+    const duplicateThumbnail = thumbnailHashes.get(thumbnailHash);
+    if (duplicateFull || duplicateThumbnail) {
+      const duplicate = duplicateFull || duplicateThumbnail;
+      throw new Error(
+        `Approved photos ${duplicate.source} and ${photo.source} produce duplicate public derivatives. Keep only one canonical manifest record.`,
+      );
+    }
+    fullHashes.set(fullHash, photo);
+    thumbnailHashes.set(thumbnailHash, photo);
+
+    const fullDimensions = webpDimensions(readFileSync(output));
+    const thumbnailDimensions = webpDimensions(readFileSync(thumbnailOutput));
+    expectedNames.add(filename);
+    records.push({
+      id: photo.id,
+      src: `/assets/projects/${filename}`,
+      alt: photo.altText || "",
+      altStatus: photo.altText === null ? "pending" : "approved",
+      featured: photo.featured === true,
+      width: fullDimensions.width,
+      height: fullDimensions.height,
+      thumbnailWidth: thumbnailDimensions.width,
+      thumbnailHeight: thumbnailDimensions.height,
+    });
   });
 
   const homepageHeroJpeg = join(temporaryDirectory, "homepage-hero-960.jpg");
@@ -107,7 +168,7 @@ try {
     "-s",
     "formatOptions",
     "80",
-    join(sourceDirectory, homepageHeroFilename),
+    join(sourceDirectory, homepageHero.source),
     "--out",
     homepageHeroJpeg,
   ]);
@@ -117,23 +178,44 @@ try {
     "76",
     homepageHeroJpeg,
     "-o",
-    join(optimizedAssetDirectory, "matken-project-hero-960.webp"),
+    stagedHomepageHero,
   ]);
 
-  const records = photoFiles.map((filename, index) => {
-    const number = String(index + 1).padStart(3, "0");
-    const featured = featuredFilenames.has(filename);
-    return `  Object.freeze({ id: "project-${number}", src: "/assets/projects/${slugFor(filename)}.webp", alt: "Approved Matken project photograph ${number}", featured: ${featured} }),`;
-  });
-  const source = [
-    "/* Generated by npm run photos:publish. Do not add unapproved media here. */",
+  const generatedRecords = records.map(
+    (record) => `  Object.freeze(${JSON.stringify(record)}),`,
+  );
+  const generatedSource = [
+    "/* Generated by npm run photos:publish from the explicit publication manifest. */",
     "export const approvedProjectPhotos = Object.freeze([",
-    ...records,
+    ...generatedRecords,
     "]);",
     "",
   ].join("\n");
-  writeFileSync(dataFile, source);
-  console.log(`Published ${photoFiles.length} optimized approved project photos.`);
+  writeFileSync(stagedDataFile, generatedSource);
+
+  const staleFullNames = syncGeneratedWebps(
+    stagedOutputDirectory,
+    outputDirectory,
+    expectedNames,
+  );
+  const staleThumbnailNames = syncGeneratedWebps(
+    stagedThumbnailDirectory,
+    thumbnailDirectory,
+    expectedNames,
+  );
+  mkdirSync(optimizedAssetDirectory, { recursive: true });
+  copyFileSync(
+    stagedHomepageHero,
+    join(optimizedAssetDirectory, "matken-project-hero-960.webp"),
+  );
+  copyFileSync(stagedDataFile, dataFile);
+
+  console.log(
+    `Published ${records.length} explicitly approved, unique project photos.`,
+  );
+  console.log(
+    `Removed ${staleFullNames.length + staleThumbnailNames.length} stale generated derivatives.`,
+  );
 } finally {
   if (existsSync(temporaryDirectory)) {
     rmSync(temporaryDirectory, { recursive: true, force: true });

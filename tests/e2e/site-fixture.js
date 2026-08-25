@@ -68,6 +68,21 @@ export async function openStablePage(page, route) {
   await expect(page.locator("main")).toBeVisible();
   await expect(page.locator("main h1")).toHaveCount(1);
   await expect(page).toHaveTitle(/\S+/);
+
+  const eagerImages = page.locator('main img[loading="eager"]');
+  await expect
+    .poll(
+      () =>
+        eagerImages.evaluateAll((images) =>
+          images.every(
+            (image) => image.complete && image.naturalWidth > 0,
+          ),
+        ),
+      {
+        message: `${route} has an eager image that did not finish loading`,
+      },
+    )
+    .toBe(true);
 }
 
 export async function expectNoHorizontalOverflow(page, route) {

@@ -3,6 +3,7 @@ import path from "node:path";
 import process from "node:process";
 import { launch } from "chrome-launcher";
 import lighthouse from "lighthouse";
+import { desktopConfig } from "lighthouse/core/index.js";
 import { chromium } from "playwright";
 import { preview } from "vite";
 
@@ -99,13 +100,16 @@ try {
 
   const summaries = [];
   for (const profile of profiles) {
-    const result = await lighthouse(profile.url, {
-      port: chrome.port,
-      output: "html",
-      logLevel: "error",
-      onlyCategories: ["performance", "accessibility", "best-practices"],
-      ...(profile.preset ? { preset: profile.preset } : {}),
-    });
+    const result = await lighthouse(
+      profile.url,
+      {
+        port: chrome.port,
+        output: "html",
+        logLevel: "error",
+        onlyCategories: ["performance", "accessibility", "best-practices"],
+      },
+      profile.preset === "desktop" ? desktopConfig : undefined,
+    );
     if (!result?.lhr) {
       throw new Error(`Lighthouse returned no result for ${profile.name}.`);
     }
@@ -126,6 +130,14 @@ try {
         audits["cumulative-layout-shift"].numericValue,
       "total-blocking-time": audits["total-blocking-time"].numericValue,
     };
+
+    await writeFile(
+      path.join(reportDirectory, `${profile.name}.html`),
+      result.report,
+    );
+    console.log(
+      `- ${profile.name}: LCP ${Math.round(summary["largest-contentful-paint"])} ms, FCP ${Math.round(summary["first-contentful-paint"])} ms, TBT ${Math.round(summary["total-blocking-time"])} ms`,
+    );
 
     assertAtLeast(
       profile.name,
@@ -160,10 +172,6 @@ try {
     }
 
     summaries.push(summary);
-    await writeFile(
-      path.join(reportDirectory, `${profile.name}.html`),
-      result.report,
-    );
   }
 
   await writeFile(

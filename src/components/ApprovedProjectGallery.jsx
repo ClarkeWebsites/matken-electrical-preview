@@ -113,7 +113,7 @@ export function ApprovedProjectGallery() {
           </p>
         </div>
         <div className="approved-photo-grid">
-          {visiblePhotos.map((photo) => (
+          {visiblePhotos.map((photo, photoIndex) => (
             <figure key={photo.id}>
               <button
                 className="gallery-photo-trigger"
@@ -122,13 +122,13 @@ export function ApprovedProjectGallery() {
                   openingTriggerRef.current = event.currentTarget;
                   setSelectedPhotoIndex(orderedProjectPhotos.indexOf(photo));
                 }}
-                aria-label={`Open ${photo.alt}`}
+                aria-label={`Open project photograph ${photoIndex + 1} of ${orderedProjectPhotos.length}`}
               >
                 <img
                   src={publicAssetUrl(thumbnailSrcFor(photo))}
                   alt={photo.alt}
-                  width="1440"
-                  height="1080"
+                  width={photo.thumbnailWidth}
+                  height={photo.thumbnailHeight}
                   loading="lazy"
                   decoding="async"
                 />
@@ -186,8 +186,8 @@ export function ApprovedProjectGallery() {
             <img
               src={publicAssetUrl(selectedPhoto.src)}
               alt={selectedPhoto.alt}
-              width="1440"
-              height="1080"
+              width={selectedPhoto.width}
+              height={selectedPhoto.height}
               decoding="async"
             />
             <div className="gallery-photo-dialog-navigation">

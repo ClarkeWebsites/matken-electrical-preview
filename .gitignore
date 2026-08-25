@@ -18,3 +18,9 @@ design-qa.md
 design-references/
 source-desktop.png
 source-reference.*
+
+# Client-supplied originals stay private. Only the review/approval records are
+# source-controlled; optimized public derivatives live under public/assets/.
+/pictures and videos/*
+!/pictures and videos/00-client-review/
+!/pictures and videos/00-client-review/**
