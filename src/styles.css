@@ -636,14 +636,6 @@ p {
   text-align: center;
 }
 
-.invoice-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 0.84rem;
-  font-weight: 700;
-}
-
 .menu-button {
   width: 44px;
   height: 44px;
@@ -979,27 +971,6 @@ p {
   margin: 12px 0 0;
 }
 
-.hero-proof {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 11px 22px;
-  padding-top: 24px;
-  border-top: 1px solid var(--line);
-}
-
-.hero-proof div {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: #3c4b60;
-  font-size: 0.82rem;
-  font-weight: 700;
-}
-
-.hero-proof svg {
-  color: var(--red);
-}
-
 .hero-media {
   position: relative;
   min-height: 610px;
@@ -1156,11 +1127,6 @@ p {
   border-bottom: 1px solid #ccd4de;
 }
 
-.service-feature:hover .round-link {
-  background: var(--navy-900);
-  color: var(--white);
-}
-
 .service-number {
   color: #5b687a;
   font-family: "Manrope", sans-serif;
@@ -1197,18 +1163,6 @@ p {
   max-width: 720px;
   margin-bottom: 0;
   font-size: 0.92rem;
-}
-
-.round-link {
-  width: 46px;
-  height: 46px;
-  display: grid;
-  place-items: center;
-  border: 1px solid #b7c1ce;
-  border-radius: 50%;
-  transition:
-    background 160ms ease,
-    color 160ms ease;
 }
 
 /* Project Blueprint */
@@ -5122,10 +5076,6 @@ input[type="range"]::-webkit-slider-thumb {
   .nav-link {
     padding-inline: 8px;
     font-size: 0.81rem;
-  }
-
-  .invoice-link {
-    display: none;
   }
 
   .header-search > span,
