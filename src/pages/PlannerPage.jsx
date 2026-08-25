@@ -38,6 +38,34 @@ import {
 } from "../lib/appUrl.js";
 import "../planner-upgrades.css";
 
+let requestPageModulePromise;
+let projectPackPageModulePromise;
+
+const warmPrivateNextStep = (route) => {
+  if (route === "request") {
+    requestPageModulePromise ??= import("./RequestPage.jsx").catch((error) => {
+      requestPageModulePromise = undefined;
+      throw error;
+    });
+    void requestPageModulePromise.catch(() => undefined);
+    return;
+  }
+
+  projectPackPageModulePromise ??= import("./ProjectPackPage.jsx").catch(
+    (error) => {
+      projectPackPageModulePromise = undefined;
+      throw error;
+    },
+  );
+  void projectPackPageModulePromise.catch(() => undefined);
+};
+
+const privateNextStepHandlers = (route) => ({
+  onPointerEnter: () => warmPrivateNextStep(route),
+  onPointerDown: () => warmPrivateNextStep(route),
+  onFocus: () => warmPrivateNextStep(route),
+});
+
 const signedDifference = (value, baseline, unit) => {
   const difference = value - baseline;
   if (Math.abs(difference) < 0.051) return "Same as Plan A";
@@ -1006,6 +1034,7 @@ export function PlannerPage() {
                 className="button button-primary"
                 to="/request?service=solar"
                 state={{ plan: activeTransfer }}
+                {...privateNextStepHandlers("request")}
               >
                 Use {activeScenario.label} in a request
                 <ArrowRight size={18} weight="bold" aria-hidden="true" />
@@ -1031,6 +1060,7 @@ export function PlannerPage() {
                 className="button button-outline"
                 to="/project-pack"
                 state={{ planner: activeTransfer }}
+                {...privateNextStepHandlers("project-pack")}
               >
                 <FileText size={18} aria-hidden="true" />
                 {updateProjectPack ? "Update Project Pack" : "Add to Project Pack"}
