@@ -102,6 +102,7 @@ test.describe("Matken core customer journeys", () => {
     }
     expect(copiedUrl).not.toMatch(/name|email|phone|loadPlan|refrigeration/i);
 
+    await page.waitForLoadState("networkidle");
     await page.goto(copiedUrl, { waitUntil: "load" });
     await expect(
       page.getByRole("slider", { name: /Monthly electricity use/i }),
