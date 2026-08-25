@@ -3,12 +3,24 @@ import { approvedProjectPhotos } from "../data/approvedProjectPhotos.js";
 import { publicAssetUrl } from "../lib/appUrl.js";
 
 const initialPhotoCount = 12;
+const featuredProjectPhotos = approvedProjectPhotos.filter(
+  (photo) => photo.featured,
+);
+const initialProjectPhotos = featuredProjectPhotos.length
+  ? featuredProjectPhotos
+  : approvedProjectPhotos.slice(0, initialPhotoCount);
+const orderedProjectPhotos = [
+  ...initialProjectPhotos,
+  ...approvedProjectPhotos.filter(
+    (photo) => !initialProjectPhotos.includes(photo),
+  ),
+];
 
 export function ApprovedProjectGallery() {
   const [showAll, setShowAll] = useState(false);
   const visiblePhotos = showAll
-    ? approvedProjectPhotos
-    : approvedProjectPhotos.slice(0, initialPhotoCount);
+    ? orderedProjectPhotos
+    : initialProjectPhotos;
 
   return (
     <section className="section approved-project-gallery" aria-labelledby="approved-project-gallery-title">
@@ -26,7 +38,7 @@ export function ApprovedProjectGallery() {
           </p>
         </div>
         <div className="approved-photo-grid">
-          {visiblePhotos.map((photo, index) => (
+          {visiblePhotos.map((photo) => (
             <figure key={photo.id}>
               <img
                 src={publicAssetUrl(photo.src)}

@@ -491,6 +491,11 @@ describe("Matken customer journeys", () => {
         name: /Approved Matken project photograph/i,
       }),
     ).toHaveLength(12);
+    expect(
+      screen.getAllByRole("img", {
+        name: /Approved Matken project photograph/i,
+      })[0],
+    ).toHaveAttribute("src", "/assets/projects/img-20260824-wa0000.webp");
     await user.click(
       screen.getByRole("button", { name: /View all 129 approved photos/i }),
     );
