@@ -461,6 +461,10 @@ test.describe("Matken core customer journeys", () => {
       }),
     ).toBeVisible();
     await expect(page.locator(".approved-photo-grid img")).toHaveCount(12);
+    await expect(page.locator(".approved-photo-grid img").first()).toHaveAttribute(
+      "src",
+      /\/assets\/projects\/thumbs\//,
+    );
     await page
       .getByRole("button", {
         name: /Open Approved Matken project photograph 004/i,

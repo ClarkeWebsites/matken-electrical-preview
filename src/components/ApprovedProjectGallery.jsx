@@ -119,7 +119,7 @@ export function ApprovedProjectGallery() {
                 aria-label={`Open ${photo.alt}`}
               >
                 <img
-                  src={publicAssetUrl(photo.src)}
+                  src={publicAssetUrl(photo.thumbnailSrc || photo.src)}
                   alt={photo.alt}
                   width="1440"
                   height="1080"

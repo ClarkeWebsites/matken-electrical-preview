@@ -495,7 +495,10 @@ describe("Matken customer journeys", () => {
       screen.getAllByRole("img", {
         name: /Approved Matken project photograph/i,
       })[0],
-    ).toHaveAttribute("src", "/assets/projects/img-20260824-wa0000.webp");
+    ).toHaveAttribute(
+      "src",
+      "/assets/projects/thumbs/img-20260824-wa0000.webp",
+    );
     const openingPhoto = screen.getByRole("button", {
       name: /Open Approved Matken project photograph 004/i,
     });
@@ -503,6 +506,9 @@ describe("Matken customer journeys", () => {
     expect(
       screen.getByRole("dialog", { name: /Photo 1 of 129/i }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("dialog", { name: /Photo 1 of 129/i }).querySelector("img"),
+    ).toHaveAttribute("src", "/assets/projects/img-20260824-wa0000.webp");
     await user.keyboard("{ArrowRight}");
     expect(
       screen.getByRole("dialog", { name: /Photo 2 of 129/i }),
