@@ -31,9 +31,12 @@ if (pagesBase) {
 }
 
 const toClientPath = (publicPath) => {
+  const assetPath = publicPath.indexOf("/assets/");
   const relativePath = pagesBase
     ? publicPath.slice(pagesBase.length)
-    : publicPath.replace(/^\/+/, "");
+    : assetPath >= 0
+      ? publicPath.slice(assetPath + 1)
+      : publicPath.replace(/^\/+/, "");
   return path.join(clientDirectory, relativePath);
 };
 

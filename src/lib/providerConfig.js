@@ -52,6 +52,7 @@ export const postProviderJson = async (
         Accept: "application/json",
       },
       credentials: "same-origin",
+      cache: "no-store",
       redirect: "error",
       referrerPolicy: "strict-origin-when-cross-origin",
       body: JSON.stringify(payload),

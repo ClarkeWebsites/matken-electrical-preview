@@ -27,6 +27,7 @@ describe("provider request adapter", () => {
       expect.objectContaining({
         method: "POST",
         credentials: "same-origin",
+        cache: "no-store",
         redirect: "error",
       }),
     );
