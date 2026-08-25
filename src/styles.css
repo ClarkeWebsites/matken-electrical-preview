@@ -865,6 +865,10 @@ p {
   line-height: 1.55;
 }
 
+.page-hero-grid .hero-live-line {
+  margin: 12px 0 0;
+}
+
 .hero-proof {
   display: flex;
   flex-wrap: wrap;
@@ -2334,7 +2338,8 @@ p {
   color: var(--navy-950);
 }
 
-.page-hero-grid > p {
+.page-hero-grid > p,
+.page-hero-grid > div > p:first-of-type {
   margin-bottom: 8px;
   font-size: 1.02rem;
 }
@@ -3872,6 +3877,20 @@ input[type="range"]::-webkit-slider-thumb {
   border-top: 1px solid var(--line);
 }
 
+.form-error-summary {
+  margin-bottom: 22px;
+  padding: 14px 16px;
+  border: 1px solid #f0c7c8;
+  border-radius: 10px;
+  background: #fff5f5;
+}
+
+.form-error-summary strong {
+  display: block;
+  color: var(--navy-950);
+  font-size: 0.82rem;
+}
+
 .carried-plan,
 .carried-blueprint {
   display: grid;
@@ -4908,6 +4927,72 @@ input[type="range"]::-webkit-slider-thumb {
   margin-top: 28px;
 }
 
+.pending-photography {
+  background: var(--soft);
+}
+
+.pending-photography-card {
+  padding: clamp(28px, 5vw, 52px);
+  border: 1px dashed #b9cedf;
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+
+.pending-photography-card h2 {
+  max-width: 16ch;
+  margin-bottom: 16px;
+}
+
+.pending-photography-card > p {
+  max-width: 62ch;
+  margin-bottom: 24px;
+}
+
+.service-next-step {
+  margin: 0 0 18px;
+  color: #3c4b60;
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.service-next-conversation {
+  margin-bottom: 42px;
+  padding: 18px 22px;
+  border-left: 4px solid var(--red);
+  background: var(--soft);
+}
+
+.service-next-conversation strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--navy-900);
+  font-size: 0.78rem;
+}
+
+.service-next-conversation p {
+  margin: 0;
+  max-width: 62ch;
+}
+
+.mobile-nav-cta {
+  display: grid;
+  gap: 10px;
+  padding: 18px 0 12px;
+}
+
+.mobile-nav-cta .button {
+  width: 100%;
+  min-height: 48px;
+  justify-content: center;
+}
+
+.mobile-nav-cta p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.5;
+}
+
 /* Responsive */
 
 @media (max-width: 1120px) {
@@ -5048,6 +5133,9 @@ input[type="range"]::-webkit-slider-thumb {
   }
 
   .mobile-service-links a {
+    min-height: 44px;
+    display: grid;
+    place-items: center;
     padding: 10px;
     border-radius: 7px;
     background: var(--soft);

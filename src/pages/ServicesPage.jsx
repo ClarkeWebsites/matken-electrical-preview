@@ -3,13 +3,14 @@ import {
   Check,
   Copy,
   HardHat,
+  Phone,
   Plug,
   Sun,
 } from "@phosphor-icons/react";
 import { useState } from "react";
 import { Link, Navigate, useParams } from "react-router";
 import { OptimizedImage } from "../components/OptimizedImage.jsx";
-import { services } from "../data/site.js";
+import { business, liveContactTruth, services } from "../data/site.js";
 
 const serviceIcons = {
   solar: Sun,
@@ -35,11 +36,14 @@ export function ServicesOverviewPage() {
             <span className="section-index">Services</span>
             <h1>Start with the project—not a list of buzzwords.</h1>
           </div>
-          <p>
-            Matken’s public service paths cover electrical, solar, and
-            construction. Choose the closest starting point, then use the
-            request form to explain where the work overlaps.
-          </p>
+          <div>
+            <p>
+              Matken’s public service paths cover electrical, solar, and
+              construction. Choose the closest starting point, then call the
+              verified number or prepare a private summary.
+            </p>
+            <p className="hero-live-line">{liveContactTruth}</p>
+          </div>
         </div>
       </section>
 
@@ -66,6 +70,7 @@ export function ServicesOverviewPage() {
                   <Icon size={35} weight="duotone" aria-hidden="true" />
                   <h2>{service.label}</h2>
                   <p>{service.detail}</p>
+                  <p className="service-next-step">{service.nextStep}</p>
                   <ul>
                     {service.pathways.map((pathway) => (
                       <li key={pathway}>
@@ -86,7 +91,7 @@ export function ServicesOverviewPage() {
                       className="text-link"
                       to={`/request?service=${service.slug}`}
                     >
-                      Start a request
+                      Prepare a request
                     </Link>
                   </div>
                 </div>
@@ -110,7 +115,7 @@ export function ServicesOverviewPage() {
             be considered together.
           </p>
           <Link className="button button-sun" to="/request">
-            Start a combined request
+            Prepare a combined request
             <ArrowRight size={18} weight="bold" aria-hidden="true" />
           </Link>
         </div>
@@ -156,24 +161,30 @@ export function ServiceDetailPage() {
                 className="button button-primary"
                 to={`/request?service=${service.slug}`}
               >
-                Start a {service.shortLabel.toLowerCase()} request
+                Prepare {service.shortLabel.toLowerCase() === "electrical" ? "an" : "a"}{" "}
+                {service.shortLabel.toLowerCase()} request
                 <ArrowRight size={18} weight="bold" aria-hidden="true" />
               </Link>
+              <a
+                className="button button-dark"
+                href={`tel:${business.phoneHref}`}
+              >
+                <Phone size={18} weight="fill" aria-hidden="true" />
+                Call {business.phoneDisplay}
+              </a>
               {service.slug === "solar" ? (
                 <Link className="text-link" to="/planner">
                   Open solar planner
                   <ArrowRight size={18} weight="bold" aria-hidden="true" />
                 </Link>
               ) : (
-                <a className="text-link" href="tel:+18765682616">
-                  Call (876) 568-2616
-                </a>
+                <Link className="text-link" to="/" state={{ startBlueprint: true }}>
+                  Build a private project blueprint
+                  <ArrowRight size={18} weight="bold" aria-hidden="true" />
+                </Link>
               )}
-              <Link className="text-link" to="/" state={{ startBlueprint: true }}>
-                Build a private project blueprint
-                <ArrowRight size={18} weight="bold" aria-hidden="true" />
-              </Link>
             </div>
+            <p className="hero-live-line">{liveContactTruth}</p>
           </div>
           <div className="service-detail-media">
             <OptimizedImage
@@ -194,6 +205,10 @@ export function ServiceDetailPage() {
             <h2>Bring context, not just a one-line request.</h2>
           </div>
           <p>{service.detail}</p>
+        </div>
+        <div className="shell service-next-conversation">
+          <strong>What happens next</strong>
+          <p>{service.nextStep}</p>
         </div>
         <div className="shell question-grid">
           {service.questions.map((question, index) => (

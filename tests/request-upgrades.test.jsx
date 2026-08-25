@@ -142,6 +142,49 @@ describe("request experience model", () => {
 });
 
 describe("request upgrades", () => {
+  it("summarizes missing fields and advances from a text field with Enter", async () => {
+    const user = userEvent.setup();
+    renderAt("/request");
+
+    await user.click(
+      await screen.findByRole("button", { name: "Continue" }),
+    );
+    expect(
+      screen.getByText(/Fix 3 items before continuing/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Choose a primary service."),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /^Solar & storage/i }));
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Property type" }),
+      "Home",
+    );
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Parish" }),
+      "Kingston",
+    );
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.click(
+      screen.getByRole("button", { name: "Planning and comparing options" }),
+    );
+    await user.type(
+      screen.getByRole("textbox", { name: /^Project details/ }),
+      "We need a clearer starting conversation about rooftop solar for a family home.",
+    );
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+
+    const nameField = screen.getByRole("textbox", { name: "Name" });
+    await user.type(nameField, "A Customer");
+    await user.keyboard("{Enter}");
+    expect(
+      screen.getByText(/Fix 2 items before continuing/i),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Enter a valid phone number.")).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Phone" })).toHaveFocus();
+  });
+
   it("organizes guided context, reviews edits, and keeps local photos out of the request", async () => {
     const user = userEvent.setup();
     renderAt("/request");

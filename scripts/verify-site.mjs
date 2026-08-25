@@ -11,6 +11,7 @@ const requiredFiles = [
   "src/lib/providerConfig.js",
   "src/lib/appUrl.js",
   "src/lib/projectPack.js",
+  "src/lib/siteMeta.js",
   "src/pages/HomePage.jsx",
   "src/pages/ServicesPage.jsx",
   "src/pages/PlannerPage.jsx",
@@ -44,6 +45,7 @@ const requiredFiles = [
   "public/assets/fonts/dm-sans-variable.woff2",
   "public/assets/fonts/manrope-variable.woff2",
   "public/robots.txt",
+  "public/sitemap.xml",
   ".env.example",
 ];
 
@@ -171,6 +173,37 @@ if (
   !robotsSource.includes("Disallow: /")
 ) {
   throw new Error("The unapproved prototype must remain non-indexable.");
+}
+
+if (!combinedSource.includes("The verified public number is live")) {
+  throw new Error("Live-contact truth copy is missing.");
+}
+
+if (
+  !combinedSource.includes("+18765682616") ||
+  !combinedSource.includes("HomeAndConstructionBusiness")
+) {
+  throw new Error("Verified business structured data is missing.");
+}
+
+if (
+  !combinedSource.includes("FAQPage") ||
+  !combinedSource.includes("pending-photography")
+) {
+  throw new Error("Share metadata or gated photography framework is missing.");
+}
+
+const metaSource = await readFile(path.join(root, "src/lib/siteMeta.js"), "utf8");
+if (metaSource.includes("streetAddress") || metaSource.includes("openingHours")) {
+  throw new Error("Structured data must not invent address or hours.");
+}
+
+const sitemapSource = await readFile(path.join(root, "public/sitemap.xml"), "utf8");
+if (
+  !sitemapSource.includes("clarkewebsites.github.io/matken-electrical-preview") ||
+  sitemapSource.includes("Sitemap:")
+) {
+  throw new Error("Sitemap must stay preview-scoped and unpublished to crawlers.");
 }
 
 console.log(

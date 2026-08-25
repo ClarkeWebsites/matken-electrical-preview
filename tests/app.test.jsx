@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  cleanup,
   fireEvent,
   render,
   screen,
@@ -396,7 +397,9 @@ describe("Matken customer journeys", () => {
     });
 
     await user.click(
-      await screen.findByRole("link", { name: /Prepare a request/i }),
+      await screen.findByRole("link", {
+        name: /Add readiness and a final summary/i,
+      }),
     );
 
     expect(
@@ -471,13 +474,28 @@ describe("Matken customer journeys", () => {
       }),
     ).toHaveAttribute("href", "tel:+18765682616");
     expect(
-      screen.getByText(/The verified public number is live/i),
-    ).toBeInTheDocument();
+      screen.getAllByText(/The verified public number is live/i).length,
+    ).toBeGreaterThan(0);
     expect(
       screen.getByText(
         /Does filling in the request form send my details to Matken/i,
       ),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", {
+        name: /Project photos stay unpublished until Matken confirms every gate/i,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Is the phone number on this website live/i),
+    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(document.getElementById("matken-business-jsonld")?.textContent)
+        .toMatch(/\+18765682616/),
+    );
+    expect(
+      document.getElementById("matken-business-jsonld")?.textContent,
+    ).not.toMatch(/streetAddress|openingHours|email/i);
 
     await user.click(blueprintShortcut);
     expect(window.location.hash).toBe("#/");
@@ -1339,6 +1357,47 @@ describe("Matken customer journeys", () => {
     ).toBeInTheDocument();
   });
 
+  it("keeps live-call and private-tool copy on planning and legal routes", async () => {
+    renderAt("/planner");
+    expect(
+      (await screen.findAllByText(/The verified public number is live/i)).length,
+    ).toBeGreaterThan(0);
+    expect(document.title).toBe("Solar & Backup Planner | Matken Electrical");
+
+    cleanup();
+    renderAt("/about");
+    expect(
+      (await screen.findAllByText(/The verified public number is live/i)).length,
+    ).toBeGreaterThan(0);
+
+    cleanup();
+    renderAt("/pay-invoice");
+    expect(
+      (await screen.findAllByText(/The verified public number is live/i)).length,
+    ).toBeGreaterThan(0);
+  });
+
+  it("offers a live call and a private request on service pages", async () => {
+    renderAt("/services/electrical");
+
+    expect(
+      await screen.findByRole("link", {
+        name: /Prepare an electrical request/i,
+      }),
+    ).toHaveAttribute("href", "/request?service=electrical");
+    expect(
+      within(document.querySelector(".service-detail-copy")).getByRole("link", {
+        name: /Call \(876\) 568-2616/,
+      }),
+    ).toHaveAttribute("href", "tel:+18765682616");
+    expect(
+      screen.getByText(/What happens next/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByText(/The verified public number is live/i).length,
+    ).toBeGreaterThan(0);
+  });
+
   it("creates a shareable planner URL without contact details", async () => {
     const user = userEvent.setup();
     renderAt("/planner");
@@ -1380,5 +1439,9 @@ describe("Matken customer journeys", () => {
     expect(
       within(recovery).getByRole("link", { name: /Open solar planner/i }),
     ).toHaveAttribute("href", "/planner");
+    expect(
+      within(recovery).getByText(/The verified public number is live/i),
+    ).toBeInTheDocument();
+    expect(document.title).toBe("Page not found | Matken Electrical");
   });
 });

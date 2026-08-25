@@ -32,6 +32,7 @@ import {
 import {
   business,
   essentialLoadItems,
+  liveContactTruth,
   parishes,
   readinessChecklistByService,
   services,
@@ -588,6 +589,7 @@ export function RequestPage() {
     values.service,
     guidedResponses,
   );
+  const errorCount = Object.values(errors).filter(Boolean).length;
 
   useEffect(() => {
     localPhotosRef.current = localPhotos;
@@ -603,6 +605,7 @@ export function RequestPage() {
   useEffect(() => {
     if (previousStepRef.current === step) return;
     previousStepRef.current = step;
+    stepLegendRef.current?.scrollIntoView?.({ block: "nearest" });
     stepLegendRef.current?.focus();
   }, [step]);
 
@@ -710,6 +713,21 @@ export function RequestPage() {
       return;
     }
     setStep((current) => Math.min(4, current + 1));
+  };
+
+  const handleFormKeyDown = (event) => {
+    if (event.key !== "Enter" || event.defaultPrevented) return;
+    if (!(event.target instanceof HTMLInputElement)) return;
+    if (
+      event.target.type === "checkbox" ||
+      event.target.type === "file" ||
+      event.target.type === "radio"
+    ) {
+      return;
+    }
+    if (step >= 4) return;
+    event.preventDefault();
+    nextStep();
   };
 
   const handleFiles = (event) => {
@@ -1029,8 +1047,7 @@ export function RequestPage() {
           <p>
             Organize the property, timing, need, and contact details. A request
             starts a conversation—it does not confirm an appointment, quote,
-            scope, or availability. In this preview, the final step prepares a
-            private summary; it does not send anything to Matken.
+            scope, or availability. {liveContactTruth}
           </p>
         </div>
       </section>
@@ -1067,8 +1084,17 @@ export function RequestPage() {
             className="request-form"
             ref={requestFormRef}
             onSubmit={handleSubmit}
+            onKeyDown={handleFormKeyDown}
             noValidate
           >
+            {errorCount ? (
+              <div className="form-error-summary" role="alert">
+                <strong>
+                  Fix {errorCount} {errorCount === 1 ? "item" : "items"} before
+                  continuing.
+                </strong>
+              </div>
+            ) : null}
             {step === 1 ? (
               <fieldset>
                 <legend ref={stepLegendRef} tabIndex="-1">
@@ -1128,6 +1154,7 @@ export function RequestPage() {
                       onChange={(event) =>
                         update("propertyType", event.target.value)
                       }
+                      aria-label="Property type"
                       aria-invalid={Boolean(errors.propertyType)}
                       aria-describedby={
                         errors.propertyType

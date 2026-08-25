@@ -6,6 +6,9 @@ export const business = {
   locationLabel: "Jamaica",
 };
 
+export const liveContactTruth =
+  "The verified public number is live. Planning tools and request forms stay on this device until a secure delivery endpoint is approved.";
+
 export const mainNav = [
   { label: "Home", to: "/" },
   { label: "Services", to: "/services" },
@@ -40,6 +43,8 @@ export const services = [
       "Existing-system discussion",
       "Monitoring and energy-use guidance",
     ],
+    nextStep:
+      "Call the verified number or prepare a private summary. Matken still has to review the property before any system size, quote, or visit.",
   },
   {
     slug: "electrical",
@@ -66,6 +71,8 @@ export const services = [
       "Panel or circuit discussion",
       "New-build coordination",
     ],
+    nextStep:
+      "Call the verified number or prepare a private summary. Matken still has to review the property before any diagnosis, quote, or visit.",
   },
   {
     slug: "construction",
@@ -92,6 +99,8 @@ export const services = [
       "Electrical construction coordination",
       "Energy-system integration",
     ],
+    nextStep:
+      "Call the verified number or prepare a private summary. Matken still has to review drawings and site stage before any coordination plan, quote, or visit.",
   },
 ];
 
@@ -235,23 +244,23 @@ export const projectCategories = [
 export const processSteps = [
   {
     number: "01",
-    title: "Tell us what you need",
-    copy: "Choose the service path and share the property, timing, and project details.",
+    title: "Organize the project privately",
+    copy: "Use the Blueprint, planner, or request form to capture context. In this preview, those details stay on this device.",
   },
   {
     number: "02",
-    title: "Clarify the scope",
-    copy: "The request is reviewed so the right questions can be answered before commitments are made.",
+    title: "Call or share a prepared summary",
+    copy: "The verified public number is live. A prepared summary is useful only when you choose to share it.",
   },
   {
     number: "03",
-    title: "Plan the next step",
-    copy: "Site review, documents, estimates, or technical planning can be arranged as appropriate.",
+    title: "Matken reviews the real property",
+    copy: "Site conditions, load details, and documents still have to be reviewed before any quote, visit, or design.",
   },
   {
     number: "04",
-    title: "Keep the work understandable",
-    copy: "The goal is a clear handoff with decisions, expectations, and follow-up easy to track.",
+    title: "Confirm the next step separately",
+    copy: "Appointments, scope, price, and schedules are confirmed after that conversation—not by submitting a website form.",
   },
 ];
 
@@ -377,6 +386,16 @@ export const resourceArticles = [
 
 export const faqs = [
   {
+    question: "Is the phone number on this website live?",
+    answer:
+      "Yes. (876) 568-2616 is the verified public number. Planning tools, request forms, invoice lookup, and project tracking stay on this device unless a secure provider is later approved and connected.",
+  },
+  {
+    question: "Does filling in the request form send my details to Matken?",
+    answer:
+      "Not in this preview. Until a secure same-origin endpoint is approved, the form prepares a private summary on this device. Nothing is emailed, uploaded, stored, or sent to Matken.",
+  },
+  {
     question: "Can the website give me a final solar-system size?",
     answer:
       "No. The planner produces an educational starting range only. A real recommendation needs property, load, equipment, installation, and budget review.",
@@ -385,11 +404,6 @@ export const faqs = [
     question: "Can I request electrical, solar, and construction help together?",
     answer:
       "Yes. Choose the closest primary service and explain the combined scope in the project details. The request can then be routed for the right follow-up.",
-  },
-  {
-    question: "Does filling in the request form send my details to Matken?",
-    answer:
-      "Not in this preview. Until a secure same-origin endpoint is approved, the form prepares a private summary on this device. Nothing is emailed, uploaded, stored, or sent to Matken.",
   },
   {
     question: "Does submitting a request confirm an appointment?",

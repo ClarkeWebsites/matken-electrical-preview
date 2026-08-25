@@ -18,11 +18,16 @@ import {
 import { Link, NavLink, Outlet, useLocation } from "react-router";
 import {
   business,
+  liveContactTruth,
   mainNav,
-  resourceArticles,
   services,
 } from "../data/site.js";
 import { publicAssetUrl } from "../lib/appUrl.js";
+import {
+  businessJsonLd,
+  canonicalUrlForPath,
+  routeMetaForPath,
+} from "../lib/siteMeta.js";
 
 const SiteSearchDialog = lazy(() =>
   import("./SiteSearchDialog.jsx").then((module) => ({
@@ -30,102 +35,42 @@ const SiteSearchDialog = lazy(() =>
   })),
 );
 
+function setMeta(selector, attribute, value) {
+  const node = document.querySelector(selector);
+  node?.setAttribute(attribute, value);
+}
+
 function ScrollToTop() {
   const { pathname } = useLocation();
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
 
-    const routeMeta = (() => {
-      if (pathname === "/") {
-        return {
-          title: "Matken Electrical | Electrical, Solar & Construction",
-          description:
-            "Explore electrical, solar, and construction project pathways with Matken in Jamaica.",
-        };
-      }
-      if (pathname.startsWith("/services/")) {
-        const slug = pathname.split("/")[2];
-        const service = services.find((item) => item.slug === slug);
-        return {
-          title: `${service?.label || "Services"} | Matken Electrical`,
-          description:
-            service?.summary ||
-            "Explore Matken electrical, solar, and construction services.",
-        };
-      }
-      if (pathname.startsWith("/resources/")) {
-        const slug = pathname.split("/")[2];
-        const article = resourceArticles.find((item) => item.slug === slug);
-        return {
-          title: `${article?.title || "Resources"} | Matken Electrical`,
-          description:
-            article?.excerpt ||
-            "Practical electrical, solar, backup, and construction planning resources.",
-        };
-      }
-
-      const pageMeta = {
-        "/services": [
-          "Services | Matken Electrical",
-          "Explore electrical, solar, and construction project pathways.",
-        ],
-        "/planner": [
-          "Solar & Backup Planner | Matken Electrical",
-          "Build an educational solar and essential-load backup planning range.",
-        ],
-        "/request": [
-          "Request Service | Matken Electrical",
-          "Organize an electrical, solar, or construction project request.",
-        ],
-        "/project-pack": [
-          "Project Pack | Matken Electrical",
-          "Combine private planning details into a polished Matken print and download pack.",
-        ],
-        "/pay-invoice": [
-          "Pay an Invoice | Matken Electrical",
-          "Request secure access to a provider-hosted Matken invoice payment page.",
-        ],
-        "/project-status": [
-          "Project Status | Matken Electrical",
-          "Request a one-time private link to view an authoritative Matken project status.",
-        ],
-        "/resources": [
-          "Planning Resources | Matken Electrical",
-          "Practical guides for solar, backup, electrical, and construction planning.",
-        ],
-        "/about": [
-          "About | Matken Electrical",
-          "Learn about Matken's electrical, solar, and construction service paths in Jamaica.",
-        ],
-        "/privacy": [
-          "Privacy | Matken Electrical",
-          "Read the prototype privacy and provider-activation boundaries.",
-        ],
-        "/terms": [
-          "Terms | Matken Electrical",
-          "Read the website planning, request, and payment-use boundaries.",
-        ],
-      }[pathname];
-
-      return {
-        title: pageMeta?.[0] || "Matken Electrical",
-        description:
-          pageMeta?.[1] ||
-          "Electrical, solar, and construction project pathways in Jamaica.",
-      };
-    })();
+    const routeMeta = routeMetaForPath(pathname);
+    const canonical = canonicalUrlForPath(pathname, window.location);
+    const jsonLdNode =
+      document.getElementById("matken-business-jsonld") ||
+      Object.assign(document.createElement("script"), {
+        id: "matken-business-jsonld",
+        type: "application/ld+json",
+      });
+    if (!jsonLdNode.isConnected) document.head.append(jsonLdNode);
 
     document.title = routeMeta.title;
+    setMeta('meta[name="description"]', "content", routeMeta.description);
+    setMeta('meta[property="og:title"]', "content", routeMeta.title);
+    setMeta('meta[property="og:description"]', "content", routeMeta.description);
+    setMeta('meta[property="og:url"]', "content", canonical);
+    setMeta('meta[name="twitter:title"]', "content", routeMeta.title);
+    setMeta(
+      'meta[name="twitter:description"]',
+      "content",
+      routeMeta.description,
+    );
     document
-      .querySelector('meta[name="description"]')
-      ?.setAttribute("content", routeMeta.description);
-    document
-      .querySelector('meta[property="og:title"]')
-      ?.setAttribute("content", routeMeta.title);
-    document
-      .querySelector('meta[property="og:description"]')
-      ?.setAttribute("content", routeMeta.description);
+      .querySelector('link[rel="canonical"]')
+      ?.setAttribute("href", canonical);
+    jsonLdNode.textContent = JSON.stringify(businessJsonLd(window.location));
   }, [pathname]);
 
   return null;
@@ -296,7 +241,7 @@ export function SiteLayout() {
       >
         <div className="utility-bar">
           <div className="shell utility-inner">
-            <span>Electrical · Solar · Construction</span>
+            <span>Call is live · planning tools stay private</span>
             <div className="utility-actions">
               <Link to="/project-status">Track a project</Link>
               <a href={`tel:${business.phoneHref}`}>
@@ -391,6 +336,20 @@ export function SiteLayout() {
                   </Link>
                 ))}
               </div>
+              <div className="mobile-nav-cta">
+                <a
+                  className="button button-dark"
+                  href={`tel:${business.phoneHref}`}
+                >
+                  <Phone size={18} weight="fill" aria-hidden="true" />
+                  Call {business.phoneDisplay}
+                </a>
+                <Link className="button button-primary" to="/request">
+                  Prepare a request
+                  <ArrowRight size={18} weight="bold" aria-hidden="true" />
+                </Link>
+                <p>{liveContactTruth}</p>
+              </div>
               <Link to="/project-pack">
                 Project Pack
                 <ArrowRight size={18} aria-hidden="true" />
@@ -403,10 +362,6 @@ export function SiteLayout() {
                 Track a project
                 <ArrowRight size={18} aria-hidden="true" />
               </Link>
-              <a href={`tel:${business.phoneHref}`}>
-                Call {business.phoneDisplay}
-                <Phone size={18} aria-hidden="true" />
-              </a>
             </nav>
           </div>
         ) : null}
@@ -483,11 +438,11 @@ export function SiteLayout() {
           <div className="footer-cta">
             <h2>Have a project in mind?</h2>
             <p>
-              Share the property, timing, and goal. We’ll help organize the
-              right next conversation.
+              Share the property, timing, and goal, then call the verified
+              number. Website forms do not send details in this preview.
             </p>
             <Link className="button button-sun" to="/request">
-              Start a request
+              Prepare a request
               <ArrowRight size={18} weight="bold" aria-hidden="true" />
             </Link>
           </div>
@@ -495,8 +450,7 @@ export function SiteLayout() {
         <div className="shell footer-bottom">
           <span>© {new Date().getFullYear()} Matken Electrical.</span>
           <span className="prototype-note">
-            Prototype · contact details beyond the verified phone remain
-            unpublished
+            {liveContactTruth}
           </span>
           <div>
             <Link to="/privacy">Privacy</Link>
@@ -516,7 +470,7 @@ export function SiteLayout() {
             Call
           </a>
           <Link to="/request">
-            Request service
+            Prepare a request
             <ArrowRight size={18} weight="bold" aria-hidden="true" />
           </Link>
         </div>

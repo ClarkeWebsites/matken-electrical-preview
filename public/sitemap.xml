@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!--
+    Preview sitemap for the current GitHub Pages origin only.
+    robots.txt still disallows crawling until owner/legal/domain gates pass.
+    Do not add unverified addresses, emails, or production domains here.
+  -->
+  <url>
+    <loc>https://clarkewebsites.github.io/matken-electrical-preview/</loc>
+  </url>
+  <url>
+    <loc>https://clarkewebsites.github.io/matken-electrical-preview/#/services</loc>
+  </url>
+  <url>
+    <loc>https://clarkewebsites.github.io/matken-electrical-preview/#/services/solar</loc>
+  </url>
+  <url>
+    <loc>https://clarkewebsites.github.io/matken-electrical-preview/#/services/electrical</loc>
+  </url>
+  <url>
+    <loc>https://clarkewebsites.github.io/matken-electrical-preview/#/services/construction</loc>
+  </url>
+  <url>
+    <loc>https://clarkewebsites.github.io/matken-electrical-preview/#/planner</loc>
+  </url>
+  <url>
+    <loc>https://clarkewebsites.github.io/matken-electrical-preview/#/request</loc>
+  </url>
+  <url>
+    <loc>https://clarkewebsites.github.io/matken-electrical-preview/#/project-pack</loc>
+  </url>
+  <url>
+    <loc>https://clarkewebsites.github.io/matken-electrical-preview/#/resources</loc>
+  </url>
+  <url>
+    <loc>https://clarkewebsites.github.io/matken-electrical-preview/#/resources/solar-consultation-checklist</loc>
+  </url>
+  <url>
+    <loc>https://clarkewebsites.github.io/matken-electrical-preview/#/resources/outage-priority-list</loc>
+  </url>
+  <url>
+    <loc>https://clarkewebsites.github.io/matken-electrical-preview/#/resources/electrical-request-photos</loc>
+  </url>
+  <url>
+    <loc>https://clarkewebsites.github.io/matken-electrical-preview/#/resources/construction-scope-starter</loc>
+  </url>
+  <url>
+    <loc>https://clarkewebsites.github.io/matken-electrical-preview/#/about</loc>
+  </url>
+</urlset>

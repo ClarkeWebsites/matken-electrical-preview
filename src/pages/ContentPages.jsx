@@ -9,7 +9,7 @@ import {
 } from "@phosphor-icons/react";
 import { Link, Navigate, useParams } from "react-router";
 import { OptimizedImage } from "../components/OptimizedImage.jsx";
-import { business, faqs, resourceArticles, services } from "../data/site.js";
+import { business, faqs, liveContactTruth, resourceArticles, services } from "../data/site.js";
 
 const resourcePlanningNextSteps = {
   "solar-consultation-checklist": {
@@ -52,6 +52,7 @@ export function ResourcesPage() {
           <p>
             Organize energy use, outage priorities, electrical context, and
             construction scope before asking for a quote or recommendation.
+            {` ${liveContactTruth}`}
           </p>
         </div>
       </section>
@@ -183,7 +184,7 @@ export function AboutPage() {
             </p>
             <div className="hero-actions">
               <Link className="button button-primary" to="/request">
-                Start a project request
+                Prepare a request
                 <ArrowRight size={18} weight="bold" aria-hidden="true" />
               </Link>
               <a className="text-link" href={`tel:${business.phoneHref}`}>
@@ -278,7 +279,8 @@ export function AboutPage() {
             <h2>Start with the phone number already published by Matken.</h2>
             <p>
               Additional email, address, hours, social profiles, and staff
-              details remain unpublished until the owner confirms them.
+              details remain unpublished until the owner confirms them.{" "}
+              {liveContactTruth}
             </p>
           </div>
           <a className="big-phone" href={`tel:${business.phoneHref}`}>
@@ -394,7 +396,7 @@ export function NotFoundPage() {
         <h1>That page is not part of this project.</h1>
         <p>
           Return home, call the verified public number, or continue with a
-          planning path.
+          planning path. {liveContactTruth}
         </p>
         <div className="hero-actions">
           <Link className="button button-primary" to="/">

@@ -14,7 +14,7 @@ import {
   Trash,
 } from "@phosphor-icons/react";
 import { Link, useLocation, useNavigate } from "react-router";
-import { essentialLoadItems } from "../data/site.js";
+import { essentialLoadItems, liveContactTruth } from "../data/site.js";
 import {
   activePlannerScenario,
   boundedPlannerInteger,
@@ -264,7 +264,7 @@ export function PlannerPage() {
           <p>
             Estimate a starting solar range and essential-load battery range.
             The result is not a quote, system design, engineering
-            recommendation, or guarantee.
+            recommendation, or guarantee. {liveContactTruth}
           </p>
         </div>
       </section>

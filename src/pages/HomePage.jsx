@@ -14,15 +14,16 @@ import {
 } from "@phosphor-icons/react";
 import { Link, useLocation } from "react-router";
 import { OptimizedImage } from "../components/OptimizedImage.jsx";
-import { ApprovedProjectStories } from "../components/ApprovedProjectStories.jsx";
 import {
   business,
   faqs,
+  liveContactTruth,
   processSteps,
   projectCategories,
   resourceArticles,
   services,
 } from "../data/site.js";
+import { approvedProjectStories } from "../data/projectStories.js";
 
 const serviceIcons = {
   solar: Sun,
@@ -31,6 +32,11 @@ const serviceIcons = {
 };
 
 const featuredResources = resourceArticles.slice(0, 3);
+const LazyApprovedProjectStories = lazy(() =>
+  import("../components/ApprovedProjectStories.jsx").then((module) => ({
+    default: module.ApprovedProjectStories,
+  })),
+);
 let blueprintModulePromise;
 
 const loadProjectBlueprint = () => {
@@ -216,10 +222,7 @@ export function HomePage() {
                 <ArrowRight size={18} weight="bold" aria-hidden="true" />
               </Link>
             </div>
-            <p className="hero-live-line">
-              The verified public number is live. Request details stay on this
-              device until a secure delivery endpoint is approved.
-            </p>
+            <p className="hero-live-line">{liveContactTruth}</p>
             <div className="hero-proof" aria-label="Matken service overview">
               <div>
                 <House size={20} aria-hidden="true" />
@@ -454,7 +457,42 @@ export function HomePage() {
         </div>
       </section>
 
-      <ApprovedProjectStories />
+      {approvedProjectStories.length ? (
+        <Suspense fallback={null}>
+          <LazyApprovedProjectStories />
+        </Suspense>
+      ) : (
+        <section
+          className="section pending-photography"
+          aria-labelledby="pending-photography-title"
+        >
+          <div className="shell pending-photography-card">
+            <span className="section-index">Approved photography only</span>
+            <h2 id="pending-photography-title">
+              Project photos stay unpublished until Matken confirms every gate.
+            </h2>
+            <p>
+              This gallery remains empty until ownership, customer or property
+              permission, captions, alt text, and brand-mark guidance are
+              approved. No project stories or performance claims are shown in
+              the meantime.
+            </p>
+            <div className="hero-actions">
+              <Link className="button button-primary" to="/request">
+                Prepare a request
+                <ArrowRight size={18} weight="bold" aria-hidden="true" />
+              </Link>
+              <a
+                className="button button-dark"
+                href={`tel:${business.phoneHref}`}
+              >
+                <Phone size={18} weight="fill" aria-hidden="true" />
+                Call {business.phoneDisplay}
+              </a>
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="section process-section">
         <div className="shell">

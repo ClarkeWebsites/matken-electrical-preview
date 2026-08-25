@@ -2,3 +2,4 @@ User-agent: *
 Disallow: /
 
 # Preview only. Replace after owner, legal, provider, and production-domain approval.
+# A sitemap.xml is prepared for later use and must not be advertised until indexing is approved.

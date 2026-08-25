@@ -8,7 +8,7 @@ export function RouteLoadingState() {
     <section className="route-state route-loading" aria-live="polite">
       <div className="shell route-state-card">
         <span className="route-loading-mark" aria-hidden="true" />
-        <p>Loading this Matken page…</p>
+        <p>Loading this Matken page… Nothing is being sent.</p>
       </div>
     </section>
   );

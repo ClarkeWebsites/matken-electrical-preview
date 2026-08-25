@@ -409,4 +409,80 @@ test.describe("Matken core customer journeys", () => {
     ).toBeVisible();
     assertHealthy();
   });
+
+  test("keeps live-call and private-tool copy across public routes", async ({
+    page,
+  }) => {
+    const assertHealthy = watchPageHealth(page);
+    for (const route of ["/", "/services", "/planner", "/request", "/about"]) {
+      await openStablePage(page, route);
+      await expect(
+        page.getByText(/The verified public number is live/).first(),
+      ).toBeVisible();
+    }
+    assertHealthy();
+  });
+
+  test("recovers from a missing page without implying delivery", async ({
+    page,
+  }) => {
+    const assertHealthy = watchPageHealth(page);
+    await openStablePage(page, "/this-page-does-not-exist");
+    await expect(page).toHaveTitle(/Page not found/);
+    await expect(
+      page.locator(".not-found").getByRole("link", { name: /Call \(876\) 568-2616/ }),
+    ).toBeVisible();
+    await expect(
+      page.locator(".not-found").getByRole("link", { name: /Prepare a request/i }),
+    ).toBeVisible();
+    await expect(
+      page.getByText(/The verified public number is live/).first(),
+    ).toBeVisible();
+    assertHealthy();
+  });
+
+  test("keeps the project photo gallery empty until approval gates pass", async ({
+    page,
+  }) => {
+    const assertHealthy = watchPageHealth(page);
+    await openStablePage(page, "/");
+    await expect(
+      page.getByRole("heading", {
+        name: /Project photos stay unpublished until Matken confirms every gate/i,
+      }),
+    ).toBeVisible();
+    await expect(page.locator(".pending-photography img")).toHaveCount(0);
+    assertHealthy();
+  });
+
+  test("offers a live call and private request from a service page", async ({
+    page,
+  }) => {
+    const assertHealthy = watchPageHealth(page);
+    await openStablePage(page, "/services/solar");
+    await expect(
+      page.getByRole("link", { name: /Prepare a solar request/i }),
+    ).toHaveAttribute("href", /request\?service=solar/);
+    await expect(
+      page.locator(".service-detail-copy").getByRole("link", {
+        name: /Call \(876\) 568-2616/,
+      }),
+    ).toHaveAttribute("href", "tel:+18765682616");
+    await expect(page.getByText(/What happens next/i)).toBeVisible();
+    assertHealthy();
+  });
+
+  test("explains missing request fields before the form can continue", async ({
+    page,
+  }) => {
+    const assertHealthy = watchPageHealth(page);
+    await openStablePage(page, "/request");
+    await page.getByRole("button", { name: "Continue" }).click();
+    await expect(
+      page.getByText(/Fix 3 items before continuing/i),
+    ).toBeVisible();
+    await expect(page.getByText("Choose a primary service.")).toBeVisible();
+    await expect(page.locator(".mobile-action-bar")).toHaveCount(0);
+    assertHealthy();
+  });
 });

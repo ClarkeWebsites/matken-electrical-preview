@@ -12,7 +12,7 @@ import {
 } from "@phosphor-icons/react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
-import { readinessChecklistByService } from "../data/site.js";
+import { readinessChecklistByService, liveContactTruth } from "../data/site.js";
 import {
   buildProjectPackHtml,
   buildProjectPackText,
@@ -205,7 +205,7 @@ export function ProjectPackPage() {
                 <h2>Start with any planning tool.</h2>
                 <p>
                   Add pieces in any order. Only non-contact planning details
-                  are held in this tab’s session storage.
+                  are held in this tab’s session storage. {liveContactTruth}
                 </p>
               </div>
             ) : (
@@ -487,7 +487,7 @@ export function ProjectPackPage() {
               <p>
                 Blueprint, planner, and readiness selections may remain in
                 this tab until it closes. Contact details and request
-                summaries are not stored there.
+                summaries are not stored there. {liveContactTruth}
               </p>
             </div>
 

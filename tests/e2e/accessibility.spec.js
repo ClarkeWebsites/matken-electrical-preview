@@ -4,6 +4,7 @@ import { openStablePage, watchPageHealth } from "./site-fixture.js";
 
 const auditedRoutes = [
   "/",
+  "/services",
   "/planner",
   "/request",
   "/project-pack",
