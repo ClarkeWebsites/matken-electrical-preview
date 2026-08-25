@@ -48,6 +48,30 @@ const warmSiteSearchDialog = () => {
   void loadSiteSearchDialog().catch(() => undefined);
 };
 
+const routeModuleLoaders = Object.freeze({
+  "/services": () => import("../pages/ServicesPage.jsx"),
+  "/planner": () => import("../pages/PlannerPage.jsx"),
+  "/request": () => import("../pages/RequestPage.jsx"),
+  "/project-pack": () => import("../pages/ProjectPackPage.jsx"),
+  "/pay-invoice": () => import("../pages/InvoicePage.jsx"),
+  "/project-status": () => import("../pages/StatusPage.jsx"),
+  "/resources": () => import("../pages/ContentPages.jsx"),
+  "/about": () => import("../pages/ContentPages.jsx"),
+});
+
+const warmRoute = (route) => {
+  void routeModuleLoaders[route]?.().catch(() => undefined);
+};
+
+const routeWarmHandlers = (route) =>
+  routeModuleLoaders[route]
+    ? {
+        onPointerEnter: () => warmRoute(route),
+        onPointerDown: () => warmRoute(route),
+        onFocus: () => warmRoute(route),
+      }
+    : {};
+
 function setMeta(selector, attribute, value) {
   const node = document.querySelector(selector);
   node?.setAttribute(attribute, value);
@@ -117,16 +141,28 @@ function RouteAnnouncer({ mainRef }) {
 function DesktopServicesMenu() {
   return (
     <div className="nav-services">
-      <NavLink to="/services" className="nav-link nav-services-trigger">
+      <NavLink
+        to="/services"
+        className="nav-link nav-services-trigger"
+        {...routeWarmHandlers("/services")}
+      >
         Services <CaretDown size={13} weight="bold" aria-hidden="true" />
       </NavLink>
       <div className="nav-services-popover" aria-label="Service pages">
-        <Link to="/services" className="nav-popover-intro">
+        <Link
+          to="/services"
+          className="nav-popover-intro"
+          {...routeWarmHandlers("/services")}
+        >
           <span>All services</span>
           <ArrowRight size={17} aria-hidden="true" />
         </Link>
         {services.map((service) => (
-          <Link key={service.slug} to={`/services/${service.slug}`}>
+          <Link
+            key={service.slug}
+            to={`/services/${service.slug}`}
+            {...routeWarmHandlers("/services")}
+          >
             <span>{service.label}</span>
             <small>{service.summary}</small>
           </Link>
@@ -285,6 +321,7 @@ export function SiteLayout() {
                     `nav-link${isActive ? " active" : ""}`
                   }
                   end={item.to === "/"}
+                  {...routeWarmHandlers(item.to)}
                 >
                   {item.label}
                 </NavLink>
@@ -312,7 +349,11 @@ export function SiteLayout() {
               <Phone size={17} weight="fill" aria-hidden="true" />
               Call {business.phoneDisplay}
             </a>
-            <Link className="button button-primary button-compact" to="/request">
+            <Link
+              className="button button-primary button-compact"
+              to="/request"
+              {...routeWarmHandlers("/request")}
+            >
               Request service
               <ArrowRight size={17} weight="bold" aria-hidden="true" />
             </Link>
@@ -340,14 +381,22 @@ export function SiteLayout() {
           >
             <nav className="shell mobile-nav" aria-label="Mobile navigation">
               {mainNav.map((item) => (
-                <NavLink key={item.to} to={item.to}>
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  {...routeWarmHandlers(item.to)}
+                >
                   {item.label}
                   <ArrowRight size={18} aria-hidden="true" />
                 </NavLink>
               ))}
               <div className="mobile-service-links">
                 {services.map((service) => (
-                  <Link key={service.slug} to={`/services/${service.slug}`}>
+                  <Link
+                    key={service.slug}
+                    to={`/services/${service.slug}`}
+                    {...routeWarmHandlers("/services")}
+                  >
                     {service.label}
                   </Link>
                 ))}
@@ -360,21 +409,28 @@ export function SiteLayout() {
                   <Phone size={18} weight="fill" aria-hidden="true" />
                   Call {business.phoneDisplay}
                 </a>
-                <Link className="button button-primary" to="/request">
+                <Link
+                  className="button button-primary"
+                  to="/request"
+                  {...routeWarmHandlers("/request")}
+                >
                   Prepare a request
                   <ArrowRight size={18} weight="bold" aria-hidden="true" />
                 </Link>
                 <p>{liveContactTruth}</p>
               </div>
-              <Link to="/project-pack">
+              <Link to="/project-pack" {...routeWarmHandlers("/project-pack")}>
                 Project Pack
                 <ArrowRight size={18} aria-hidden="true" />
               </Link>
-              <Link to="/pay-invoice">
+              <Link to="/pay-invoice" {...routeWarmHandlers("/pay-invoice")}>
                 Pay an invoice
                 <ArrowRight size={18} aria-hidden="true" />
               </Link>
-              <Link to="/project-status">
+              <Link
+                to="/project-status"
+                {...routeWarmHandlers("/project-status")}
+              >
                 Track a project
                 <ArrowRight size={18} aria-hidden="true" />
               </Link>
