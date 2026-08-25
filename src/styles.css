@@ -4356,105 +4356,6 @@ input[type="range"]::-webkit-slider-thumb {
   cursor: pointer;
 }
 
-/* Invoice */
-
-.invoice-hero {
-  padding-block: 92px;
-  background: var(--navy-950);
-  color: var(--white);
-}
-
-.invoice-hero-grid {
-  display: grid;
-  grid-template-columns: 0.9fr 0.75fr;
-  gap: 100px;
-  align-items: center;
-}
-
-.invoice-hero h1 {
-  margin-bottom: 26px;
-  font-size: clamp(3.2rem, 5.8vw, 5.5rem);
-}
-
-.invoice-hero-grid > div > p {
-  max-width: 700px;
-  color: rgba(255, 255, 255, 0.68);
-  font-size: 1.02rem;
-}
-
-.invoice-trust-list {
-  display: grid;
-  gap: 11px;
-  margin-top: 31px;
-}
-
-.invoice-trust-list span {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: rgba(255, 255, 255, 0.78);
-  font-size: 0.8rem;
-  font-weight: 650;
-}
-
-.invoice-trust-list svg {
-  color: var(--sun);
-}
-
-.invoice-access-card {
-  padding: 34px;
-  border-radius: var(--radius-lg);
-  background: var(--white);
-  color: var(--ink);
-  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.28);
-}
-
-.invoice-card-heading {
-  margin-bottom: 25px;
-}
-
-.invoice-card-heading > svg {
-  color: var(--red);
-}
-
-.invoice-access-card .field {
-  margin-bottom: 17px;
-}
-
-.privacy-line {
-  margin: 13px 0 0;
-  color: var(--muted);
-  font-size: 0.68rem;
-  line-height: 1.5;
-  text-align: center;
-}
-
-.invoice-message {
-  margin-top: 18px;
-  background: #edf4fa;
-  color: var(--navy-800);
-}
-
-.invoice-message.success {
-  background: #eaf6f1;
-  color: #145b48;
-}
-
-.invoice-message a {
-  font-weight: 800;
-  text-decoration: underline;
-}
-
-.provider-state {
-  padding-top: 14px;
-  margin-top: 17px;
-  border-top: 1px solid var(--line);
-  color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 650;
-  text-align: center;
-}
-
 .provider-preview-banner {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -4485,67 +4386,6 @@ input[type="range"]::-webkit-slider-thumb {
 .status-access-card .provider-preview-banner {
   display: block;
   margin: 0 0 18px;
-}
-
-.invoice-process-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-}
-
-.invoice-process-grid article {
-  min-height: 280px;
-  display: flex;
-  flex-direction: column;
-  padding: 27px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-}
-
-.invoice-process-grid article > svg {
-  margin-bottom: 35px;
-  color: var(--red);
-}
-
-.invoice-process-grid article > span {
-  color: #5b687a;
-  font-size: 0.68rem;
-  font-weight: 800;
-}
-
-.invoice-process-grid h3 {
-  margin: 12px 0 9px;
-}
-
-.invoice-process-grid p {
-  margin-bottom: 0;
-  font-size: 0.8rem;
-}
-
-.invoice-help {
-  padding-top: 0;
-}
-
-.invoice-help-card {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: 20px;
-  align-items: center;
-  padding: 45px;
-  border-radius: var(--radius-lg);
-  background: var(--navy-900);
-  color: var(--white);
-}
-
-.invoice-help-card h2 {
-  margin-bottom: 9px;
-  font-size: clamp(2rem, 3vw, 3rem);
-}
-
-.invoice-help-card p {
-  max-width: 700px;
-  margin-bottom: 0;
-  color: rgba(255, 255, 255, 0.65);
 }
 
 /* Resources, articles, about, legal */
@@ -5124,9 +4964,6 @@ input[type="range"]::-webkit-slider-thumb {
     gap: 25px;
   }
 
-  .invoice-hero-grid {
-    gap: 60px;
-  }
 }
 
 @media (max-width: 920px) {
@@ -5345,14 +5182,12 @@ input[type="range"]::-webkit-slider-thumb {
   }
 
   .process-grid,
-  .question-grid,
-  .invoice-process-grid {
+  .question-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
   .process-grid article:nth-child(2),
-  .question-grid article:nth-child(2),
-  .invoice-process-grid article:nth-child(2) {
+  .question-grid article:nth-child(2) {
     border-right: 0;
   }
 
@@ -5434,19 +5269,6 @@ input[type="range"]::-webkit-slider-thumb {
 
   .request-form {
     min-height: 0;
-  }
-
-  .invoice-hero-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .invoice-access-card {
-    max-width: 650px;
-  }
-
-  .invoice-help-card {
-    grid-template-columns: 1fr;
-    justify-items: start;
   }
 
   .article-layout {
@@ -5793,15 +5615,13 @@ input[type="range"]::-webkit-slider-thumb {
   .related-grid,
   .planner-explainer-grid,
   .principle-grid,
-  .invoice-process-grid,
   .resource-library-grid {
     grid-template-columns: 1fr;
   }
 
   .process-grid article,
   .process-grid article:not(:first-child),
-  .question-grid article,
-  .invoice-process-grid article {
+  .question-grid article {
     min-height: auto;
     padding: 27px 4px;
     border-right: 0;
@@ -5913,8 +5733,7 @@ input[type="range"]::-webkit-slider-thumb {
 
   .planner-controls,
   .planner-results,
-  .request-form,
-  .invoice-access-card {
+  .request-form {
     padding: 25px 20px;
   }
 
@@ -6028,18 +5847,6 @@ input[type="range"]::-webkit-slider-thumb {
   .result-actions {
     display: grid;
     grid-template-columns: 1fr;
-  }
-
-  .invoice-hero {
-    padding-block: 65px;
-  }
-
-  .invoice-help-card {
-    padding: 32px 23px;
-  }
-
-  .invoice-help-card .button {
-    width: 100%;
   }
 
   .resource-library article {

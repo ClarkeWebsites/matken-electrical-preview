@@ -11,6 +11,7 @@ import {
 } from "@phosphor-icons/react";
 import { Link } from "react-router";
 import { business } from "../data/site.js";
+import "./InvoicePage.css";
 import {
   providerConfig,
   requestInvoiceAccess,
