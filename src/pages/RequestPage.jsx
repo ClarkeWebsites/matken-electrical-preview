@@ -56,6 +56,7 @@ import { stageProjectPackRequestTransfer } from "../lib/projectPack.js";
 import "../request-upgrades.css";
 
 const emptyErrors = {};
+const REQUEST_DETAILS_MIN_LENGTH = 30;
 const essentialLoadById = new Map(
   essentialLoadItems.map((item) => [item.id, item]),
 );
@@ -133,9 +134,9 @@ function validationErrorsForStep(currentStep, values) {
 
   if (currentStep === 2) {
     if (!values.urgency) nextErrors.urgency = "Choose a project timing.";
-    if (values.details.trim().length < 30) {
+    if (values.details.trim().length < REQUEST_DETAILS_MIN_LENGTH) {
       nextErrors.details =
-        "Add at least 30 characters so the request has useful context.";
+        `Add at least ${REQUEST_DETAILS_MIN_LENGTH} characters so the request has useful context.`;
     }
   }
 
@@ -1028,7 +1029,8 @@ export function RequestPage() {
           <p>
             Organize the property, timing, need, and contact details. A request
             starts a conversation—it does not confirm an appointment, quote,
-            scope, or availability.
+            scope, or availability. In this preview, the final step prepares a
+            private summary; it does not send anything to Matken.
           </p>
         </div>
       </section>
@@ -1154,9 +1156,12 @@ export function RequestPage() {
                       data-request-field="parish"
                       value={values.parish}
                       onChange={(event) => update("parish", event.target.value)}
+                      aria-label="Parish"
                       aria-invalid={Boolean(errors.parish)}
                       aria-describedby={
-                        errors.parish ? "parish-error" : undefined
+                        errors.parish
+                          ? "parish-help parish-error"
+                          : "parish-help"
                       }
                     >
                       <option value="">Choose one</option>
@@ -1164,6 +1169,9 @@ export function RequestPage() {
                         <option key={parish}>{parish}</option>
                       ))}
                     </select>
+                    <small id="parish-help">
+                      Choose the Jamaica parish for the property.
+                    </small>
                     {errors.parish ? (
                       <small className="field-error" id="parish-error">
                         {errors.parish}
@@ -1352,16 +1360,33 @@ export function RequestPage() {
                     value={values.details}
                     onChange={(event) => update("details", event.target.value)}
                     placeholder="What is happening now? What outcome do you need? Which equipment, spaces, or project stages are involved?"
+                    aria-label="Project details"
                     aria-invalid={Boolean(errors.details)}
                     aria-describedby={
-                      errors.details
-                        ? "project-details-help project-details-error"
-                        : "project-details-help"
+                      [
+                        "project-details-help",
+                        "project-details-count",
+                        errors.details ? "project-details-error" : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" ")
                     }
                   />
                   <small id="project-details-help">
                     Include the current condition and desired outcome. Do not
                     include account numbers or payment information.
+                  </small>
+                  <small
+                    className={
+                      values.details.trim().length >= REQUEST_DETAILS_MIN_LENGTH
+                        ? "field-count field-count-ready"
+                        : "field-count"
+                    }
+                    id="project-details-count"
+                  >
+                    {values.details.trim().length >= REQUEST_DETAILS_MIN_LENGTH
+                      ? `${values.details.trim().length} characters · enough for a useful starting brief`
+                      : `${values.details.trim().length} of ${REQUEST_DETAILS_MIN_LENGTH} characters needed`}
                   </small>
                   {errors.details ? (
                     <small
@@ -1463,13 +1488,23 @@ export function RequestPage() {
                       onChange={(event) => update("phone", event.target.value)}
                       autoComplete="tel"
                       inputMode="tel"
+                      placeholder="(876) 555-0101"
                       required={values.contactPreference !== "Email"}
+                      aria-label={
+                        values.contactPreference === "Email"
+                          ? "Phone (optional)"
+                          : "Phone"
+                      }
                       aria-required={values.contactPreference !== "Email"}
                       aria-invalid={Boolean(errors.phone)}
                       aria-describedby={
-                        errors.phone ? "phone-error" : undefined
+                        errors.phone ? "phone-help phone-error" : "phone-help"
                       }
                     />
+                    <small id="phone-help">
+                      Include the area code. This number is for follow-up, not
+                      an appointment confirmation.
+                    </small>
                     {errors.phone ? (
                       <small className="field-error" id="phone-error">
                         {errors.phone}

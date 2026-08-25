@@ -461,6 +461,24 @@ describe("Matken customer journeys", () => {
       }),
     ).not.toBeInTheDocument();
 
+    const heroActions = document.querySelector(".hero-actions");
+    expect(
+      within(heroActions).getByRole("link", { name: /Prepare a request/i }),
+    ).toHaveAttribute("href", "/request");
+    expect(
+      within(heroActions).getByRole("link", {
+        name: /Call \(876\) 568-2616/,
+      }),
+    ).toHaveAttribute("href", "tel:+18765682616");
+    expect(
+      screen.getByText(/The verified public number is live/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Does filling in the request form send my details to Matken/i,
+      ),
+    ).toBeInTheDocument();
+
     await user.click(blueprintShortcut);
     expect(window.location.hash).toBe("#/");
     await waitFor(() =>
@@ -1229,6 +1247,17 @@ describe("Matken customer journeys", () => {
     const user = userEvent.setup();
     renderAt("/pay-invoice");
 
+    expect(
+      await screen.findByText(
+        /Preview only\. This page does not look up invoices/i,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen
+        .getByText(/Preview only\. This page does not look up invoices/i)
+        .closest("[role='status']"),
+    ).toBeTruthy();
+
     await user.type(
       await screen.findByRole("textbox", { name: "Invoice reference" }),
       "MKN-INV-1001",
@@ -1333,5 +1362,23 @@ describe("Matken customer journeys", () => {
     expect(window.location.href).not.toMatch(/name|email|phone/i);
     expect(window.location.href).not.toMatch(/refrigeration|watts|loadPlan/i);
     expect(await screen.findByText(/Plan link/)).toBeInTheDocument();
+  });
+
+  it("recovers from an unknown route with live call and planning paths", async () => {
+    renderAt("/this-page-does-not-exist");
+
+    const notFound = await screen.findByRole("heading", {
+      name: "That page is not part of this project.",
+    });
+    const recovery = notFound.closest(".not-found");
+    expect(
+      within(recovery).getByRole("link", { name: /Call \(876\) 568-2616/ }),
+    ).toHaveAttribute("href", "tel:+18765682616");
+    expect(
+      within(recovery).getByRole("link", { name: /Prepare a request/i }),
+    ).toHaveAttribute("href", "/request");
+    expect(
+      within(recovery).getByRole("link", { name: /Open solar planner/i }),
+    ).toHaveAttribute("href", "/planner");
   });
 });

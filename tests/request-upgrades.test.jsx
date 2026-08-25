@@ -210,10 +210,14 @@ describe("request upgrades", () => {
         name: "Planning and comparing options",
       }),
     );
+    expect(screen.getByText("0 of 30 characters needed")).toBeInTheDocument();
     await user.type(
       screen.getByRole("textbox", { name: /^Project details/ }),
       "One room has no reliable power and we need a safe follow-up conversation.",
     );
+    expect(
+      screen.getByText(/characters · enough for a useful starting brief/i),
+    ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Continue" }));
 
     await user.type(screen.getByRole("textbox", { name: "Name" }), "A Customer");

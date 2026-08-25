@@ -62,18 +62,18 @@ const searchItems = [
     type: "Customer access",
     title: "Invoice payment access",
     description:
-      "See how private invoice lookup and provider-hosted payment will work after activation.",
+      "See how private invoice lookup will work after a payment provider is approved. This preview does not look up invoices or take payment.",
     to: "/pay-invoice",
-    keywords: "invoice billing receipt payment card secure pay",
+    keywords: "invoice billing receipt payment card secure pay preview gated",
   },
   {
     type: "Customer access",
     title: "Project status",
     description:
-      "Request a private one-time link to view a confirmed project state.",
+      "Request a private one-time link after project tracking is connected. This preview does not look up projects or send messages.",
     to: "/project-status",
     keywords:
-      "track project progress update schedule status reference verification email sms",
+      "track project progress update schedule status reference verification email sms preview gated",
   },
   {
     type: "Learn",

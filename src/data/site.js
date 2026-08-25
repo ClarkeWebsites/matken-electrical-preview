@@ -387,6 +387,11 @@ export const faqs = [
       "Yes. Choose the closest primary service and explain the combined scope in the project details. The request can then be routed for the right follow-up.",
   },
   {
+    question: "Does filling in the request form send my details to Matken?",
+    answer:
+      "Not in this preview. Until a secure same-origin endpoint is approved, the form prepares a private summary on this device. Nothing is emailed, uploaded, stored, or sent to Matken.",
+  },
+  {
     question: "Does submitting a request confirm an appointment?",
     answer:
       "No. A request starts the conversation. Timing, scope, site access, and any appointment must be confirmed separately.",

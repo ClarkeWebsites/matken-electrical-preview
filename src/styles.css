@@ -853,7 +853,16 @@ p {
 }
 
 .hero-actions {
-  margin-bottom: 38px;
+  margin-bottom: 18px;
+}
+
+.hero-live-line {
+  max-width: 560px;
+  margin: 0 0 28px;
+  color: #3c4b60;
+  font-size: 0.82rem;
+  font-weight: 650;
+  line-height: 1.55;
 }
 
 .hero-proof {
@@ -3842,6 +3851,18 @@ input[type="range"]::-webkit-slider-thumb {
   font-weight: 700;
 }
 
+.field-count {
+  display: block;
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.field-count-ready {
+  color: var(--green);
+}
+
 .form-actions {
   display: flex;
   justify-content: space-between;
@@ -4351,6 +4372,38 @@ input[type="range"]::-webkit-slider-thumb {
   text-align: center;
 }
 
+.provider-preview-banner {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: start;
+  width: 100%;
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  border: 1px solid #ecd795;
+  border-radius: 10px;
+  background: #fff9e6;
+  color: #5a4a16;
+  font-size: 0.78rem;
+  font-weight: 650;
+  line-height: 1.5;
+}
+
+.provider-preview-banner svg {
+  margin-top: 1px;
+  color: #b98912;
+}
+
+.provider-preview-banner p {
+  margin: 0;
+  color: inherit;
+}
+
+.status-access-card .provider-preview-banner {
+  display: block;
+  margin: 0 0 18px;
+}
+
 .invoice-process-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -4847,7 +4900,12 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 .not-found p {
+  max-width: 640px;
   font-size: 1rem;
+}
+
+.not-found .hero-actions {
+  margin-top: 28px;
 }
 
 /* Responsive */
@@ -5272,7 +5330,11 @@ input[type="range"]::-webkit-slider-thumb {
   }
 
   body {
-    padding-bottom: 66px;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  body:has(.mobile-action-bar) {
+    padding-bottom: calc(66px + env(safe-area-inset-bottom, 0px));
   }
 
   h1 {
@@ -5393,6 +5455,11 @@ input[type="range"]::-webkit-slider-thumb {
 
   .hero-actions .button {
     width: 100%;
+    justify-content: center;
+  }
+
+  .hero-live-line {
+    margin-bottom: 22px;
   }
 
   .hero-media,
@@ -5634,7 +5701,7 @@ input[type="range"]::-webkit-slider-thumb {
     left: 0;
     display: grid;
     grid-template-columns: 0.62fr 1.38fr;
-    padding: 8px;
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid var(--line);
     background: rgba(255, 255, 255, 0.96);
     backdrop-filter: blur(14px);
@@ -5916,6 +5983,10 @@ input[type="range"]::-webkit-slider-thumb {
 
 .status-page-hero p {
   color: rgba(255, 255, 255, 0.76);
+}
+
+.status-page-hero .provider-preview-banner p {
+  color: inherit;
 }
 
 .status-page {

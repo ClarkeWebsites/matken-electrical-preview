@@ -7,6 +7,7 @@ import {
   HardHat,
   House,
   MapTrifold,
+  Phone,
   Plug,
   Sun,
   Wrench,
@@ -200,14 +201,25 @@ export function HomePage() {
             </p>
             <div className="hero-actions">
               <Link className="button button-primary" to="/request">
-                Request a consultation
+                Prepare a request
                 <ArrowRight size={19} weight="bold" aria-hidden="true" />
               </Link>
+              <a
+                className="button button-dark"
+                href={`tel:${business.phoneHref}`}
+              >
+                <Phone size={18} weight="fill" aria-hidden="true" />
+                Call {business.phoneDisplay}
+              </a>
               <Link className="text-link" to="/services">
                 Explore services
                 <ArrowRight size={18} weight="bold" aria-hidden="true" />
               </Link>
             </div>
+            <p className="hero-live-line">
+              The verified public number is live. Request details stay on this
+              device until a secure delivery endpoint is approved.
+            </p>
             <div className="hero-proof" aria-label="Matken service overview">
               <div>
                 <House size={20} aria-hidden="true" />

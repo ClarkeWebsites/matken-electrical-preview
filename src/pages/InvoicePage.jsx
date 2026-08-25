@@ -70,6 +70,15 @@ export function InvoicePage() {
               is connected, matching customers receive a private hosted payment
               link.
             </p>
+            {providerConfig.paymentMode === "preview" ? (
+              <div className="provider-preview-banner" role="status">
+                <Info size={20} weight="fill" aria-hidden="true" />
+                <p>
+                  Preview only. This page does not look up invoices, email a
+                  payment link, or accept payment.
+                </p>
+              </div>
+            ) : null}
             <div className="invoice-trust-list">
               <span>
                 <LockKey size={19} aria-hidden="true" />

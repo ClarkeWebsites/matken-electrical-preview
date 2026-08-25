@@ -15,6 +15,17 @@ describe("secure project-status tracker", () => {
     window.history.replaceState({}, "", "/project-status");
     render(<App />);
 
+    expect(
+      await screen.findByText(
+        /Preview only\. This page does not look up a project/i,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen
+        .getByText(/Preview only\. This page does not look up a project/i)
+        .closest("[role='status']"),
+    ).toBeTruthy();
+
     await user.type(
       await screen.findByRole("textbox", { name: "Project reference" }),
       "MKN-PROJ-101",

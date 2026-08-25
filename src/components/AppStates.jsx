@@ -1,6 +1,7 @@
 import { Component } from "react";
 import { ArrowClockwise, House, WarningCircle } from "@phosphor-icons/react";
 import { Link } from "react-router";
+import { business } from "../data/site.js";
 
 export function RouteLoadingState() {
   return (
@@ -37,8 +38,8 @@ export class AppErrorBoundary extends Component {
           <span className="section-index">Page recovery</span>
           <h1>This page did not finish loading.</h1>
           <p>
-            Refresh the page to try again, or return home and continue from
-            there.
+            Refresh the page to try again, return home, or call the verified
+            public number.
           </p>
           <div className="button-row">
             <button
@@ -53,6 +54,9 @@ export class AppErrorBoundary extends Component {
               <House size={18} weight="bold" aria-hidden="true" />
               Return home
             </Link>
+            <a className="text-link" href={`tel:${business.phoneHref}`}>
+              Call {business.phoneDisplay}
+            </a>
           </div>
         </div>
       </section>

@@ -2,6 +2,7 @@ import {
   ArrowRight,
   CheckCircle,
   EnvelopeSimple,
+  Info,
   Key,
   LockKey,
   Phone,
@@ -207,6 +208,15 @@ export function StatusPage() {
           <div>
             <span className="section-index">Private customer access</span>
             <h1>Check the confirmed state of your project.</h1>
+            {hasConnectedProvider ? null : (
+              <div className="provider-preview-banner" role="status">
+                <Info size={20} weight="fill" aria-hidden="true" />
+                <p>
+                  Preview only. This page does not look up a project or send an
+                  email or text message.
+                </p>
+              </div>
+            )}
           </div>
           <p>
             Request a one-time access link using the contact detail already

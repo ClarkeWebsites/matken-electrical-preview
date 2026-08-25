@@ -392,13 +392,23 @@ export function NotFoundPage() {
       <div className="shell">
         <span className="section-index">404</span>
         <h1>That page is not part of this project.</h1>
-        <p>Return home or choose a verified service path.</p>
+        <p>
+          Return home, call the verified public number, or continue with a
+          planning path.
+        </p>
         <div className="hero-actions">
           <Link className="button button-primary" to="/">
             Go home
           </Link>
-          <Link className="text-link" to="/services">
-            View services
+          <a className="button button-dark" href={`tel:${business.phoneHref}`}>
+            Call {business.phoneDisplay}
+          </a>
+          <Link className="text-link" to="/request">
+            Prepare a request
+            <ArrowRight size={18} weight="bold" aria-hidden="true" />
+          </Link>
+          <Link className="text-link" to="/planner">
+            Open solar planner
             <ArrowRight size={18} weight="bold" aria-hidden="true" />
           </Link>
         </div>

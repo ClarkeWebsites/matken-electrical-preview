@@ -391,6 +391,10 @@ export function SiteLayout() {
                   </Link>
                 ))}
               </div>
+              <Link to="/project-pack">
+                Project Pack
+                <ArrowRight size={18} aria-hidden="true" />
+              </Link>
               <Link to="/pay-invoice">
                 Pay an invoice
                 <ArrowRight size={18} aria-hidden="true" />
@@ -501,20 +505,22 @@ export function SiteLayout() {
         </div>
       </footer>
 
-      <div
-        className="mobile-action-bar"
-        inert={modalOpen ? true : undefined}
-        aria-hidden={modalOpen ? "true" : undefined}
-      >
-        <a href={`tel:${business.phoneHref}`}>
-          <Phone size={20} weight="fill" aria-hidden="true" />
-          Call
-        </a>
-        <Link to="/request">
-          Request service
-          <ArrowRight size={18} weight="bold" aria-hidden="true" />
-        </Link>
-      </div>
+      {pathname === "/request" ? null : (
+        <div
+          className="mobile-action-bar"
+          inert={modalOpen ? true : undefined}
+          aria-hidden={modalOpen ? "true" : undefined}
+        >
+          <a href={`tel:${business.phoneHref}`}>
+            <Phone size={20} weight="fill" aria-hidden="true" />
+            Call
+          </a>
+          <Link to="/request">
+            Request service
+            <ArrowRight size={18} weight="bold" aria-hidden="true" />
+          </Link>
+        </div>
+      )}
     </>
   );
 }
