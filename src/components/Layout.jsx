@@ -29,11 +29,25 @@ import {
   routeMetaForPath,
 } from "../lib/siteMeta.js";
 
-const SiteSearchDialog = lazy(() =>
-  import("./SiteSearchDialog.jsx").then((module) => ({
-    default: module.SiteSearchDialog,
-  })),
-);
+let siteSearchModulePromise;
+
+const loadSiteSearchDialog = () => {
+  siteSearchModulePromise ??= import("./SiteSearchDialog.jsx")
+    .then((module) => ({
+      default: module.SiteSearchDialog,
+    }))
+    .catch((error) => {
+      siteSearchModulePromise = undefined;
+      throw error;
+    });
+  return siteSearchModulePromise;
+};
+
+const SiteSearchDialog = lazy(loadSiteSearchDialog);
+
+const warmSiteSearchDialog = () => {
+  void loadSiteSearchDialog().catch(() => undefined);
+};
 
 function setMeta(selector, attribute, value) {
   const node = document.querySelector(selector);
@@ -287,6 +301,8 @@ export function SiteLayout() {
               aria-expanded={searchOpen}
               aria-keyshortcuts="/ Control+K Meta+K"
               onClick={openSearch}
+              onPointerEnter={warmSiteSearchDialog}
+              onFocus={warmSiteSearchDialog}
             >
               <MagnifyingGlass size={18} weight="bold" aria-hidden="true" />
               <span>Search</span>
