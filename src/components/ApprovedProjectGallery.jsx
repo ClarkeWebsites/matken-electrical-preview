@@ -5,6 +5,12 @@ import { publicAssetUrl } from "../lib/appUrl.js";
 
 const initialPhotoCount = 12;
 const galleryPageSize = 12;
+const projectAssetPrefix = "/assets/projects/";
+const thumbnailAssetPrefix = `${projectAssetPrefix}thumbs/`;
+const thumbnailSrcFor = (photo) =>
+  photo.src.startsWith(projectAssetPrefix)
+    ? photo.src.replace(projectAssetPrefix, thumbnailAssetPrefix)
+    : photo.src;
 const featuredProjectPhotos = approvedProjectPhotos.filter(
   (photo) => photo.featured,
 );
@@ -119,7 +125,7 @@ export function ApprovedProjectGallery() {
                 aria-label={`Open ${photo.alt}`}
               >
                 <img
-                  src={publicAssetUrl(photo.thumbnailSrc || photo.src)}
+                  src={publicAssetUrl(thumbnailSrcFor(photo))}
                   alt={photo.alt}
                   width="1440"
                   height="1080"
