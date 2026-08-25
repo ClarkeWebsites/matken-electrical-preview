@@ -12,6 +12,7 @@ import {
 } from "@phosphor-icons/react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
+import "./ProjectPackPage.css";
 import { readinessChecklistByService, liveContactTruth } from "../data/site.js";
 import {
   buildProjectPackHtml,
