@@ -24,6 +24,7 @@ import {
   services,
 } from "../data/site.js";
 import {
+  consultationQuestionsFor,
   normalizeProjectBlueprint,
   pathwayFor,
   projectBlueprintGoals,
@@ -63,7 +64,7 @@ function warmRequestPage() {
   void preloadRequestPage().catch(() => undefined);
 }
 
-export function ProjectBlueprint() {
+export function ProjectBlueprint({ updateProjectPack = false }) {
   const [step, setStep] = useState(1);
   const [goalId, setGoalId] = useState("");
   const [propertyType, setPropertyType] = useState("");
@@ -222,6 +223,9 @@ export function ProjectBlueprint() {
     ? resultReadiness.filter(
         (item) => !blueprint.availableContextIds.includes(item.id),
       )
+    : [];
+  const consultationQuestions = blueprint
+    ? consultationQuestionsFor(blueprint)
     : [];
 
   return (
@@ -544,6 +548,19 @@ export function ProjectBlueprint() {
                 </div>
               ) : null}
             </div>
+
+            <div className="blueprint-consultation-questions">
+              <span>Useful questions for the consultation</span>
+              <p>
+                These prompts help make the first conversation more specific;
+                they do not establish a final scope or technical recommendation.
+              </p>
+              <ul>
+                {consultationQuestions.map((question) => (
+                  <li key={question}>{question}</li>
+                ))}
+              </ul>
+            </div>
           </div>
 
           {blueprint.urgency === "Urgent safety concern" ? (
@@ -607,7 +624,7 @@ export function ProjectBlueprint() {
             </button>
             <Link to="/project-pack" state={{ blueprint }}>
               <FileText size={17} aria-hidden="true" />
-              Add to Project Pack
+              {updateProjectPack ? "Update Project Pack" : "Add to Project Pack"}
             </Link>
             <Link to={`/services/${blueprint.service}`}>
               Explore {resultService.shortLabel}
@@ -625,6 +642,12 @@ export function ProjectBlueprint() {
               </div>
             ) : null}
           </div>
+          {updateProjectPack ? (
+            <p className="blueprint-boundary" role="status">
+              This private Blueprint can update your existing Project Pack.
+              Nothing is sent to Matken.
+            </p>
+          ) : null}
           <button
             className="blueprint-reset"
             type="button"

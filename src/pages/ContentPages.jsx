@@ -11,6 +11,35 @@ import { Link, Navigate, useParams } from "react-router";
 import { OptimizedImage } from "../components/OptimizedImage.jsx";
 import { business, faqs, resourceArticles, services } from "../data/site.js";
 
+const resourcePlanningNextSteps = {
+  "solar-consultation-checklist": {
+    to: "/planner",
+    label: "Explore solar readiness",
+    heading: "Turn the bill and load details into a starting range.",
+    copy: "Use the educational planner to organize energy use, outage priorities, and a first solar-and-battery conversation.",
+  },
+  "outage-priority-list": {
+    to: "/planner",
+    label: "Build an outage planning range",
+    heading: "Test the priorities you just listed.",
+    copy: "Use the educational planner to compare essential load, outage duration, and an initial backup range.",
+  },
+  "electrical-request-photos": {
+    to: "/",
+    state: { startBlueprint: true },
+    label: "Build a private Project Blueprint",
+    heading: "Organize the property context before you request help.",
+    copy: "The private Blueprint helps turn these observations into a clearer starting brief without sending any details.",
+  },
+  "construction-scope-starter": {
+    to: "/",
+    state: { startBlueprint: true },
+    label: "Build a private Project Blueprint",
+    heading: "Organize the scope before the first conversation.",
+    copy: "The private Blueprint helps capture project outcome, context, timing, and useful preparation without sending any details.",
+  },
+};
+
 export function ResourcesPage() {
   return (
     <>
@@ -80,6 +109,7 @@ export function ResourceArticlePage() {
   if (!article) {
     return <Navigate to="/resources" replace />;
   }
+  const nextStep = resourcePlanningNextSteps[article.slug];
 
   return (
     <article className="article-page">
@@ -113,11 +143,20 @@ export function ResourceArticlePage() {
           </div>
         </div>
         <aside className="article-aside">
-          <span>Ready to organize the project?</span>
-          <h2>Carry these details into a request.</h2>
-          <Link className="button button-primary" to="/request">
-            Start a request
+          <span>Continue planning privately</span>
+          <h2>{nextStep.heading}</h2>
+          <p>{nextStep.copy}</p>
+          <Link
+            className="button button-primary"
+            to={nextStep.to}
+            state={nextStep.state}
+          >
+            {nextStep.label}
             <ArrowRight size={18} weight="bold" aria-hidden="true" />
+          </Link>
+          <Link className="article-aside-secondary" to="/request">
+            Or organize a request
+            <ArrowRight size={17} weight="bold" aria-hidden="true" />
           </Link>
           <a href={`tel:${business.phoneHref}`}>
             <Phone size={17} weight="fill" aria-hidden="true" />

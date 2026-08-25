@@ -173,6 +173,16 @@ describe("planner upgrade experience", () => {
     );
 
     await user.click(
+      screen.getByText("Where do I find the right number?"),
+    );
+    expect(
+      screen.getByText(/energy-use figure measured in/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Do not use the dollar amount/i),
+    ).toBeInTheDocument();
+
+    await user.click(
       screen.getByText("Compare several monthly bills"),
     );
     [300, 450, 600].forEach((value, index) => {

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import {
   ArrowRight,
   Buildings,
@@ -11,7 +11,7 @@ import {
   Sun,
   Wrench,
 } from "@phosphor-icons/react";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 import { OptimizedImage } from "../components/OptimizedImage.jsx";
 import { ApprovedProjectStories } from "../components/ApprovedProjectStories.jsx";
 import {
@@ -72,8 +72,11 @@ const LazyProjectBlueprint = lazy(() =>
   })),
 );
 
-function BlueprintExperience() {
-  const [started, setStarted] = useState(false);
+function BlueprintExperience({
+  initialStarted = false,
+  updateProjectPack = false,
+}) {
+  const [started, setStarted] = useState(initialStarted);
 
   if (started) {
     return (
@@ -88,7 +91,7 @@ function BlueprintExperience() {
           </div>
         }
       >
-        <LazyProjectBlueprint />
+        <LazyProjectBlueprint updateProjectPack={updateProjectPack} />
       </Suspense>
     );
   }
@@ -157,6 +160,33 @@ function HomeFaq() {
 }
 
 export function HomePage() {
+  const location = useLocation();
+  const startBlueprintFromService =
+    location.state?.startBlueprint === true;
+  const returnToBlueprintFromPack =
+    location.state?.projectPackMode === true;
+
+  useEffect(() => {
+    if (!startBlueprintFromService && !returnToBlueprintFromPack) {
+      return undefined;
+    }
+    const frame = window.requestAnimationFrame(() => {
+      if (returnToBlueprintFromPack) {
+        const launchButton = document.querySelector(
+          "#project-blueprint .blueprint-panel-launch button",
+        );
+        if (launchButton?.scrollIntoView) {
+          launchButton.scrollIntoView({ block: "center" });
+          return;
+        }
+      }
+      document
+        .querySelector("#project-blueprint")
+        ?.scrollIntoView?.({ block: "start" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [returnToBlueprintFromPack, startBlueprintFromService]);
+
   return (
     <>
       <section className="home-hero">
@@ -304,7 +334,10 @@ export function HomePage() {
         id="project-blueprint"
       >
         <div className="shell">
-          <BlueprintExperience />
+          <BlueprintExperience
+            initialStarted={startBlueprintFromService}
+            updateProjectPack={returnToBlueprintFromPack}
+          />
         </div>
       </section>
 

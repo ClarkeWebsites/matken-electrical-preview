@@ -20,7 +20,9 @@ import {
   clearProjectPackPlanning,
   createProjectPack,
   mergeProjectPackPlanning,
+  normalizeProjectPackPlanning,
   projectPackDisplayData,
+  projectPackConversationSummary,
   readProjectPackRequestTransfer,
 } from "../lib/projectPack.js";
 import { publicAssetUrl } from "../lib/appUrl.js";
@@ -55,7 +57,17 @@ export function ProjectPackPage() {
   const [requestReference, setRequestReference] = useState(
     incomingRequest.requestReference,
   );
+  const [receivedPackUpdate, setReceivedPackUpdate] = useState(() => {
+    const acceptedPlanning = normalizeProjectPackPlanning(incoming);
+    return Boolean(
+      acceptedPlanning.blueprint ||
+        acceptedPlanning.planner ||
+        acceptedPlanning.readiness ||
+        incomingRequest.requestSummary,
+    );
+  });
   const [actionStatus, setActionStatus] = useState("");
+  const [confirmClear, setConfirmClear] = useState(false);
   const display = useMemo(
     () => projectPackDisplayData(planning),
     [planning],
@@ -77,6 +89,17 @@ export function ProjectPackPage() {
   const readinessService = planning.readiness?.service || "";
   const readinessCount =
     readinessChecklistByService[readinessService]?.length || 0;
+  const packParts = [
+    { label: "Project Blueprint", present: Boolean(planning.blueprint) },
+    { label: "Energy planning range", present: Boolean(planning.planner) },
+    { label: "Readiness notes", present: Boolean(planning.readiness) },
+    { label: "Request summary", present: Boolean(pack.requestSummary) },
+  ];
+  const completedPartCount = packParts.filter((part) => part.present).length;
+  const conversationSummary = useMemo(
+    () => projectPackConversationSummary(pack),
+    [pack],
+  );
 
   useEffect(() => {
     clearProjectPackRequestTransfer(requestTransferKey);
@@ -124,6 +147,8 @@ export function ProjectPackPage() {
     setPlanning(empty);
     setRequestSummary("");
     setRequestReference("");
+    setReceivedPackUpdate(false);
+    setConfirmClear(false);
     setActionStatus(
       "Project Pack cleared from this tab. Downloaded files are not affected.",
     );
@@ -185,6 +210,28 @@ export function ProjectPackPage() {
               </div>
             ) : (
               <div className="project-pack-sections">
+                <article className="project-pack-conversation-summary">
+                  <div className="project-pack-section-heading">
+                    <FileText size={24} weight="duotone" aria-hidden="true" />
+                    <div>
+                      <span>Conversation at a glance</span>
+                      <h2>The details you chose to organize.</h2>
+                    </div>
+                  </div>
+                  <dl>
+                    {conversationSummary.map((item) => (
+                      <div key={item.label}>
+                        <dt>{item.label}</dt>
+                        <dd>{item.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                  <p>
+                    This private snapshot organizes the starting conversation.
+                    It does not confirm a quote, appointment, scope, or final
+                    technical recommendation.
+                  </p>
+                </article>
                 {planning.blueprint ? (
                   <article>
                     <div className="project-pack-section-heading">
@@ -343,6 +390,30 @@ export function ProjectPackPage() {
           <aside className="project-pack-tools">
             <span className="section-index">Build the pack</span>
             <h2>Add what is useful. Leave out what is not.</h2>
+            <section
+              className="project-pack-completeness"
+              aria-labelledby="project-pack-completeness-title"
+            >
+              <div>
+                <span>Your private handoff</span>
+                <strong id="project-pack-completeness-title">
+                  {completedPartCount} of {packParts.length} optional pieces added
+                </strong>
+              </div>
+              <ul>
+                {packParts.map((part) => (
+                  <li className={part.present ? "complete" : ""} key={part.label}>
+                    <span aria-hidden="true">{part.present ? "✓" : "○"}</span>
+                    {part.label}
+                    <small>{part.present ? "Added" : "Optional"}</small>
+                  </li>
+                ))}
+              </ul>
+              <p>
+                Add only what helps you explain the project. This is not a
+                required checklist or a submitted request.
+              </p>
+            </section>
             <div className="project-pack-add">
               <Link to="/" state={{ projectPackMode: true }}>
                 <MapTrifold size={20} aria-hidden="true" />
@@ -364,7 +435,14 @@ export function ProjectPackPage() {
                 </span>
                 <ArrowRight size={18} aria-hidden="true" />
               </Link>
-              <Link to="/request">
+              <Link
+                to="/request"
+                state={{
+                  ...(planning.blueprint ? { blueprint: planning.blueprint } : {}),
+                  ...(planning.planner ? { plan: planning.planner } : {}),
+                  ...(planning.readiness ? { readiness: planning.readiness } : {}),
+                }}
+              >
                 <ClipboardText size={20} aria-hidden="true" />
                 <span>
                   <strong>Prepare a request</strong>
@@ -413,17 +491,48 @@ export function ProjectPackPage() {
               </p>
             </div>
 
+            {receivedPackUpdate && !confirmClear ? (
+              <p className="project-pack-status" role="status">
+                Your private Project Pack was updated with the details you
+                chose. Nothing was sent to Matken.
+              </p>
+            ) : null}
+
             {actionStatus ? (
               <p className="project-pack-status" role="status">
                 {actionStatus}
               </p>
             ) : null}
 
-            {hasContent ? (
+            {confirmClear ? (
+              <div className="project-pack-clear-confirmation" role="alert">
+                <p>
+                  Clear the planning details held in this tab? Downloaded files
+                  are not affected.
+                </p>
+                <div>
+                  <button
+                    className="project-pack-clear"
+                    type="button"
+                    onClick={clear}
+                  >
+                    <Trash size={17} aria-hidden="true" />
+                    Clear this pack now
+                  </button>
+                  <button
+                    className="project-pack-clear-cancel"
+                    type="button"
+                    onClick={() => setConfirmClear(false)}
+                  >
+                    Keep this pack
+                  </button>
+                </div>
+              </div>
+            ) : hasContent ? (
               <button
                 className="project-pack-clear"
                 type="button"
-                onClick={clear}
+                onClick={() => setConfirmClear(true)}
               >
                 <Trash size={17} aria-hidden="true" />
                 Clear this pack

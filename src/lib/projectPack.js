@@ -158,6 +158,45 @@ export function createProjectPack({
   };
 }
 
+export function projectPackConversationSummary(packInput) {
+  const pack = createProjectPack(packInput);
+  const summary = [];
+  const blueprint = pack.planning.blueprint;
+  const planner = pack.planning.planner;
+  const readiness = pack.planning.readiness;
+
+  if (blueprint) {
+    const goal = projectBlueprintGoals.find((item) => item.id === blueprint.goalId);
+    summary.push({
+      label: "Project goal",
+      value: goal?.label || "Project planning",
+    });
+  }
+  if (planner) {
+    summary.push({
+      label: "Educational planning range",
+      value: `${planner.result.startingSolarKw.toFixed(1)} kW solar · ${planner.result.nominalBatteryKwh.toFixed(1)} kWh battery`,
+    });
+  }
+  if (readiness) {
+    const total = (readinessChecklistByService[readiness.service] || []).length;
+    summary.push({
+      label: "Readiness",
+      value: `${readiness.availableContextIds.length} of ${total} useful items selected`,
+    });
+  }
+  if (pack.requestSummary) {
+    summary.push({
+      label: "Prepared request",
+      value: pack.requestReference
+        ? `Reference ${pack.requestReference}`
+        : "Summary added privately in this browser",
+    });
+  }
+
+  return summary;
+}
+
 const plannerLines = (planner) => {
   if (!planner) return [];
   const lines = [
@@ -217,6 +256,7 @@ const readinessLines = (readiness) => {
 
 export function buildProjectPackText(packInput) {
   const pack = createProjectPack(packInput);
+  const conversationSummary = projectPackConversationSummary(pack);
   const sections = [];
   if (pack.planning.blueprint) {
     sections.push(serializeProjectBlueprint(pack.planning.blueprint));
@@ -244,6 +284,15 @@ export function buildProjectPackText(packInput) {
     "MATKEN PROJECT PACK",
     "Electrical · Solar · Construction",
     "",
+    ...(conversationSummary.length
+      ? [
+          "CONVERSATION AT A GLANCE",
+          ...conversationSummary.map(
+            (item) => `- ${item.label}: ${item.value}`,
+          ),
+          "",
+        ]
+      : []),
     ...(sections.length
       ? sections.flatMap((section, index) => [
           ...(index ? ["", "────────────────────────────────────", ""] : []),

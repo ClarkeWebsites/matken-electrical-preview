@@ -288,6 +288,17 @@ describe("request upgrades", () => {
         name: "Your request is organized and ready to share.",
       }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", {
+        name: "Choose a deliberate handoff.",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/website did not transmit the request/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Open Project Pack if you want one planning handoff/i),
+    ).toBeInTheDocument();
     expect(document.querySelector(".summary-panel pre")).toHaveTextContent(
       "Customer-observed project context (not a diagnosis):",
     );

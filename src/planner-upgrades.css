@@ -4,6 +4,47 @@
   gap: 10px;
 }
 
+.planner-bill-finder {
+  padding: 0 2px;
+  margin: -2px 0 3px;
+  color: var(--navy-900);
+}
+
+.planner-bill-finder summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--navy-900);
+  font-size: 0.69rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.planner-bill-finder summary svg {
+  color: var(--red);
+}
+
+.planner-bill-finder > div {
+  max-width: 580px;
+  padding: 12px 14px;
+  margin-top: 9px;
+  border-left: 3px solid var(--sun);
+  background: #fff9e9;
+  font-size: 0.69rem;
+  line-height: 1.5;
+}
+
+.planner-bill-finder p {
+  margin: 0;
+}
+
+.planner-bill-finder ul {
+  display: grid;
+  gap: 5px;
+  padding-left: 18px;
+  margin: 10px 0 0;
+}
+
 .bill-history-entry {
   position: relative;
   display: grid;

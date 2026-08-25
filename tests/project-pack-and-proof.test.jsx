@@ -14,6 +14,7 @@ import {
   createProjectPack,
   mergeProjectPackPlanning,
   PROJECT_PACK_STORAGE_KEY,
+  projectPackConversationSummary,
   readProjectPackRequestTransfer,
   stageProjectPackRequestTransfer,
 } from "../src/lib/projectPack.js";
@@ -131,11 +132,35 @@ describe("Matken Project Pack privacy boundary", () => {
     const html = buildProjectPackHtml(pack);
 
     expect(text).toMatch(/MATKEN PROJECT PACK/);
+    expect(text).toMatch(/CONVERSATION AT A GLANCE/);
     expect(text).toMatch(/PROJECT BLUEPRINT/);
     expect(text).toMatch(/SOLAR & BACKUP PLANNING RANGE/);
     expect(text).toMatch(/Name: A Customer/);
     expect(html).not.toContain("<script>alert");
     expect(html).toContain("&lt;script&gt;");
+  });
+
+  it("creates a concise non-contact conversation snapshot from Pack sections", () => {
+    const summary = projectPackConversationSummary({
+      planning: {
+        blueprint,
+        planner,
+        readiness: { service: "solar", availableContextIds: ["recent-usage"] },
+      },
+      requestReference: "MKN-PACK-103",
+      requestSummary: "Name: Private Customer",
+    });
+
+    expect(summary).toEqual([
+      { label: "Project goal", value: "Plan solar for a property" },
+      {
+        label: "Educational planning range",
+        value: expect.stringMatching(/kW solar · .* kWh battery/),
+      },
+      { label: "Readiness", value: "1 of 4 useful items selected" },
+      { label: "Prepared request", value: "Reference MKN-PACK-103" },
+    ]);
+    expect(JSON.stringify(summary)).not.toMatch(/Private Customer/);
   });
 
   it("hands contact-bearing summaries across routes only in ephemeral memory", () => {

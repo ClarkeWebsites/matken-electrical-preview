@@ -60,7 +60,25 @@ const essentialLoadById = new Map(
   essentialLoadItems.map((item) => [item.id, item]),
 );
 
-function initialRequestValues(searchParams, blueprint = null) {
+function validReadinessIds(readiness, serviceSlug) {
+  if (!readiness || typeof readiness !== "object") return [];
+  if (readiness.service !== serviceSlug) return [];
+
+  const allowedIds = new Set(
+    (readinessChecklistByService[serviceSlug] || []).map((item) => item.id),
+  );
+  return Array.isArray(readiness.availableContextIds)
+    ? [...new Set(readiness.availableContextIds)].filter((id) =>
+        allowedIds.has(id),
+      )
+    : [];
+}
+
+function initialRequestValues(
+  searchParams,
+  blueprint = null,
+  readiness = null,
+) {
   const requestedService = services.find(
     (item) => item.slug === searchParams.get("service"),
   );
@@ -68,6 +86,17 @@ function initialRequestValues(searchParams, blueprint = null) {
     ? services.find((item) => item.slug === blueprint.service)
     : requestedService;
   const requestedPath = searchParams.get("path") || "";
+  const blueprintReadiness = validReadinessIds(
+    {
+      service: selectedService?.slug,
+      availableContextIds: blueprint?.availableContextIds,
+    },
+    selectedService?.slug,
+  );
+  const transferredReadiness = validReadinessIds(
+    readiness,
+    selectedService?.slug,
+  );
 
   return {
     service: selectedService?.slug || "",
@@ -84,7 +113,9 @@ function initialRequestValues(searchParams, blueprint = null) {
     phone: "",
     email: "",
     contactPreference: "Phone call",
-    availableContextIds: blueprint?.availableContextIds || [],
+    availableContextIds: [
+      ...new Set([...blueprintReadiness, ...transferredReadiness]),
+    ],
     serviceConsent: false,
     marketingConsent: false,
   };
@@ -511,6 +542,12 @@ export function RequestPage() {
   const [plannerData, setPlannerData] = useState(
     () => normalizePlannerPayload(location.state?.plan),
   );
+  const [carriedReadinessCount] = useState(() =>
+    validReadinessIds(
+      location.state?.readiness,
+      initialBlueprint?.service,
+    ).length,
+  );
   const [step, setStep] = useState(1);
   const [errors, setErrors] = useState(emptyErrors);
   const [submitting, setSubmitting] = useState(false);
@@ -523,7 +560,11 @@ export function RequestPage() {
   const [photoStatus, setPhotoStatus] = useState("");
   const [editingReviewStep, setEditingReviewStep] = useState(null);
   const [values, setValues] = useState(() =>
-    initialRequestValues(searchParams, initialBlueprint),
+    initialRequestValues(
+      searchParams,
+      initialBlueprint,
+      location.state?.readiness,
+    ),
   );
   const stepLegendRef = useRef(null);
   const previousStepRef = useRef(step);
@@ -876,6 +917,37 @@ export function RequestPage() {
               </p>
             </div>
           ) : null}
+          {result.mode === "prepared" ? (
+            <section
+              className="request-prepared-next-steps"
+              aria-labelledby="request-prepared-next-steps-title"
+            >
+              <div>
+                <span>What you can do next</span>
+                <h2 id="request-prepared-next-steps-title">
+                  Choose a deliberate handoff.
+                </h2>
+              </div>
+              <ol>
+                <li>
+                  <strong>Keep the reference</strong>
+                  <p>Use it when you call or share this prepared summary.</p>
+                </li>
+                <li>
+                  <strong>Copy, share, or print the summary</strong>
+                  <p>Choose one of the controls below to keep the project details together.</p>
+                </li>
+                <li>
+                  <strong>Open Project Pack if you want one planning handoff</strong>
+                  <p>It combines this summary with the private planning details you choose to include.</p>
+                </li>
+                <li>
+                  <strong>Contact Matken through the verified phone number</strong>
+                  <p>Tell them this website did not transmit the request, then provide the summary or reference.</p>
+                </li>
+              </ol>
+            </section>
+          ) : null}
           {localPhotos.length ? (
             <div className="preview-warning">
               <ImageSquare size={22} weight="duotone" aria-hidden="true" />
@@ -1198,6 +1270,14 @@ export function RequestPage() {
                       follow-up. Do not open electrical equipment or enter an
                       unsafe area to collect anything.
                     </p>
+                    {carriedReadinessCount ? (
+                      <p className="carried-readiness-note" role="status">
+                        {carriedReadinessCount} optional readiness
+                        {carriedReadinessCount === 1 ? " selection was" : " selections were"}{" "}
+                        carried from your private Project Pack. Review or
+                        change them before continuing.
+                      </p>
+                    ) : null}
                     <div className="readiness-grid">
                       {readinessOptions.map((item) => (
                         <label key={item.id}>

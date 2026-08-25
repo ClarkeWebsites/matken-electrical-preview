@@ -10,6 +10,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { App } from "../src/App.jsx";
 import {
+  consultationQuestionsFor,
   normalizeProjectBlueprint,
   serializeProjectBlueprint,
 } from "../src/lib/projectBlueprintModel.js";
@@ -175,6 +176,15 @@ describe("Matken Project Blueprint model", () => {
       /did not automatically send its project answers or preparation selections to Matken/i,
     );
     expect(text).not.toMatch(/Injected Customer|555-0101|injected@example/);
+    expect(text).toMatch(/Useful questions for the consultation/i);
+    expect(text).toMatch(/Which rooms, circuits, or equipment are affected/i);
+    expect(consultationQuestionsFor(blueprint)).toEqual([
+      "Is this a new installation, upgrade, or fault?",
+      "Is power currently available at the property?",
+      "Which rooms, circuits, or equipment are affected?",
+      "Is there an urgent safety concern?",
+    ]);
+    expect(consultationQuestionsFor(null)).toEqual([]);
   });
 
   it("fails closed when service, pathway, property, or timing drift", () => {
@@ -214,6 +224,213 @@ describe("Matken Project Blueprint model", () => {
 });
 
 describe("Matken customer journeys", () => {
+  it("shows the optional private Project Pack pieces before any planning is added", async () => {
+    window.sessionStorage.clear();
+    renderAt("/project-pack");
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Bring the whole project conversation into one pack.",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("0 of 4 optional pieces added"),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText("Optional")).toHaveLength(4);
+    expect(
+      screen.getByText(/not a required checklist or a submitted request/i),
+    ).toBeInTheDocument();
+  });
+
+  it("returns from Project Pack to the private Blueprint entry without starting it", async () => {
+    const scrollIntoView = vi.fn();
+    const originalScrollIntoView = HTMLElement.prototype.scrollIntoView;
+    HTMLElement.prototype.scrollIntoView = scrollIntoView;
+
+    try {
+      renderAt("/", { projectPackMode: true });
+
+      expect(
+        await screen.findByRole("button", { name: "Start my blueprint" }),
+      ).toBeInTheDocument();
+      await waitFor(() =>
+        expect(scrollIntoView).toHaveBeenCalledWith({ block: "center" }),
+      );
+      expect(
+        screen.queryByRole("radio", {
+          name: "Resolve or upgrade electrical systems",
+        }),
+      ).not.toBeInTheDocument();
+    } finally {
+      HTMLElement.prototype.scrollIntoView = originalScrollIntoView;
+    }
+  });
+
+  it("labels the Blueprint return action when updating a private Project Pack", async () => {
+    const user = userEvent.setup();
+    renderAt("/", { projectPackMode: true, startBlueprint: true });
+
+    await user.click(
+      await screen.findByRole("radio", { name: "Plan solar for a property" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.click(screen.getByRole("radio", { name: "Home" }));
+    await user.click(screen.getByRole("radio", { name: "A few months" }));
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.click(screen.getByRole("button", { name: "Create my blueprint" }));
+
+    expect(
+      await screen.findByRole("link", { name: "Update Project Pack" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /This private Blueprint can update your existing Project Pack/i,
+      ),
+    ).toHaveAttribute("role", "status");
+  });
+
+  it("shows a concise conversation snapshot when a Project Pack has planning details", async () => {
+    window.sessionStorage.clear();
+    renderAt("/project-pack", {
+      blueprint: {
+        version: 1,
+        source: "homepage-blueprint",
+        goalId: "solar",
+        service: "solar",
+        pathway: "Solar project consultation",
+        propertyType: "Home",
+        urgency: "Within a few months",
+        availableContextIds: ["recent-usage"],
+      },
+      planner: {
+        monthlyKwh: 450,
+        essentialKw: 1.2,
+        outageHours: 6,
+        panelWatts: 450,
+      },
+      readiness: {
+        service: "solar",
+        availableContextIds: ["recent-usage"],
+      },
+    });
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "The details you chose to organize.",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Your private Project Pack was updated with the details you chose/i,
+      ),
+    ).toHaveAttribute("role", "status");
+    expect(screen.getAllByText("Plan solar for a property")).toHaveLength(2);
+    expect(screen.getByText("1 of 4 useful items selected")).toBeInTheDocument();
+    expect(
+      screen.getByText(/does not confirm a quote, appointment, scope/i),
+    ).toBeInTheDocument();
+  });
+
+  it("asks before clearing private Project Pack details from this tab", async () => {
+    const user = userEvent.setup();
+    window.sessionStorage.clear();
+    renderAt("/project-pack", {
+      blueprint: {
+        version: 1,
+        source: "homepage-blueprint",
+        goalId: "solar",
+        service: "solar",
+        pathway: "Solar project consultation",
+        propertyType: "Home",
+        urgency: "Within a few months",
+        availableContextIds: [],
+      },
+    });
+
+    await user.click(await screen.findByRole("button", { name: "Clear this pack" }));
+    expect(
+      screen
+        .getByText(/Clear the planning details held in this tab/i)
+        .closest(".project-pack-clear-confirmation"),
+    ).toHaveAttribute("role", "alert");
+    expect(
+      screen.queryByText(/Project Pack was updated with the details you chose/i),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Plan solar for a property" }),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Clear this pack now" }));
+    expect(
+      await screen.findByText(/Project Pack cleared from this tab/i),
+    ).toHaveAttribute("role", "status");
+    expect(
+      screen.getByText("Waiting for details"),
+    ).toBeInTheDocument();
+  });
+
+  it("carries non-contact Blueprint and planning details from Project Pack into a request", async () => {
+    const user = userEvent.setup();
+    window.sessionStorage.clear();
+    renderAt("/project-pack", {
+      blueprint: {
+        version: 1,
+        source: "homepage-blueprint",
+        goalId: "solar",
+        service: "solar",
+        pathway: "Solar project consultation",
+        propertyType: "Home",
+        urgency: "Within a few months",
+        availableContextIds: ["recent-usage"],
+      },
+      planner: {
+        monthlyKwh: 450,
+        essentialKw: 1.2,
+        outageHours: 6,
+        panelWatts: 450,
+      },
+      readiness: {
+        service: "solar",
+        availableContextIds: ["recent-usage"],
+      },
+    });
+
+    await user.click(
+      await screen.findByRole("link", { name: /Prepare a request/i }),
+    );
+
+    expect(
+      await screen.findByText(/Your private Project Blueprint was applied/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /^Solar & storage/i }),
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(
+      screen.getByRole("combobox", { name: "Property type" }),
+    ).toHaveValue("Home");
+    expect(
+      screen.getByText(/Planner result attached to this request/i),
+    ).toBeInTheDocument();
+    expect(window.history.state.usr).not.toHaveProperty("requestSummary");
+    expect(window.history.state.usr).not.toHaveProperty("requestReference");
+
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Parish" }),
+      "Saint James",
+    );
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    expect(
+      screen.getByRole("checkbox", {
+        name: "Recent electricity bills or monthly kWh totals",
+      }),
+    ).toBeChecked();
+    expect(
+      screen.getByText(
+        /1 optional readiness selection was carried from your private Project Pack/i,
+      ),
+    ).toHaveAttribute("role", "status");
+  });
+
   it("renders the home route with verified service paths", async () => {
     const user = userEvent.setup();
     renderAt("/#/");
@@ -281,9 +498,11 @@ describe("Matken customer journeys", () => {
     expect(
       screen.getByText(/Choose the outcome you are working toward/i),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText("What outcome are you working toward?"),
-    ).toHaveFocus();
+    await waitFor(() =>
+      expect(
+        screen.getByText("What outcome are you working toward?"),
+      ).toHaveFocus(),
+    );
 
     await user.click(electricalGoal);
     await user.click(screen.getByRole("button", { name: "Continue" }));
@@ -315,6 +534,12 @@ describe("Matken customer journeys", () => {
     expect(
       screen.getByText(/Planning category:/).closest("p"),
     ).toHaveTextContent("Commercial electrical request");
+    expect(
+      screen.getByText("Useful questions for the consultation"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Which rooms, circuits, or equipment are affected?"),
+    ).toBeInTheDocument();
     expect(
       screen.getByText(/Do not wait on a website request/i),
     ).toBeInTheDocument();
@@ -562,6 +787,36 @@ describe("Matken customer journeys", () => {
     expect(
       screen.queryByRole("dialog", { name: "Search Matken" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("routes a resource reader to the matching educational planning tool", async () => {
+    const user = userEvent.setup();
+    renderAt("/resources/outage-priority-list");
+
+    await user.click(
+      await screen.findByRole("link", {
+        name: "Build an outage planning range",
+      }),
+    );
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Plan A inputs",
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("labels the Planner return action when updating a private Project Pack", async () => {
+    renderAt("/planner", { projectPackMode: true });
+
+    expect(
+      await screen.findByRole("link", { name: "Update Project Pack" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /This educational range can update your existing private Project Pack/i,
+      ),
+    ).toHaveAttribute("role", "status");
   });
 
   it("builds an essential load and carries its canonical details into the request summary", async () => {
@@ -1010,6 +1265,49 @@ describe("Matken customer journeys", () => {
     );
     expect(screen.getByRole("status")).toHaveTextContent(/loaded/i);
     expect(document.title).toBe("Services | Matken Electrical");
+  });
+
+  it("copies service preparation questions without creating a request", async () => {
+    const user = userEvent.setup();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+    renderAt("/services/solar");
+
+    await user.click(
+      await screen.findByRole("button", {
+        name: "Copy preparation questions",
+      }),
+    );
+
+    expect(writeText).toHaveBeenCalledWith(
+      expect.stringContaining("MATKEN SOLAR & STORAGE — PREPARATION QUESTIONS"),
+    );
+    expect(
+      screen.getByText(/Preparation questions copied\. No details were sent to Matken/i),
+    ).toHaveAttribute("role", "status");
+  });
+
+  it("opens the private Blueprint directly from a service page", async () => {
+    const user = userEvent.setup();
+    renderAt("/services/electrical");
+
+    await user.click(
+      await screen.findByRole("link", {
+        name: "Build a private project blueprint",
+      }),
+    );
+
+    expect(
+      await screen.findByRole("radio", {
+        name: "Resolve or upgrade electrical systems",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("What outcome are you working toward?"),
+    ).toBeInTheDocument();
   });
 
   it("creates a shareable planner URL without contact details", async () => {

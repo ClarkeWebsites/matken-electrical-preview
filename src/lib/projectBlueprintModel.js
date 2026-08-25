@@ -117,6 +117,14 @@ export function pathwayFor(goal, propertyType) {
   return goal?.pathwaysByProperty?.[propertyType] || goal?.pathway || "";
 }
 
+export function consultationQuestionsFor(blueprint) {
+  const normalized = normalizeProjectBlueprint(blueprint);
+  if (!normalized) return [];
+
+  const service = services.find((item) => item.slug === normalized.service);
+  return service?.questions || [];
+}
+
 export function normalizeProjectBlueprint(input) {
   if (
     !input ||
@@ -181,6 +189,7 @@ export function serializeProjectBlueprint(blueprint) {
   const usefulItems = readinessOptions.filter(
     (item) => !normalized.availableContextIds.includes(item.id),
   );
+  const consultationQuestions = consultationQuestionsFor(normalized);
 
   return [
     "MATKEN PROJECT BLUEPRINT",
@@ -201,6 +210,9 @@ export function serializeProjectBlueprint(blueprint) {
     ...(usefulItems.length
       ? usefulItems.map((item) => `- ${item.label}`)
       : ["- The current preparation list is complete"]),
+    "",
+    "Useful questions for the consultation:",
+    ...consultationQuestions.map((question) => `- ${question}`),
     "",
     "This blueprint is a customer-prepared planning brief. It is not a quote, diagnosis, appointment, availability promise, system design, safety clearance, or final work scope.",
     "Creating this Blueprint did not automatically send its project answers or preparation selections to Matken.",

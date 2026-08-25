@@ -13,7 +13,7 @@ import {
   Sun,
   Trash,
 } from "@phosphor-icons/react";
-import { Link, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { essentialLoadItems } from "../data/site.js";
 import {
   activePlannerScenario,
@@ -46,7 +46,9 @@ const signedDifference = (value, baseline, unit) => {
 };
 
 export function PlannerPage() {
+  const location = useLocation();
   const navigate = useNavigate();
+  const updateProjectPack = location.state?.projectPackMode === true;
   const [comparisonState, dispatch] = useReducer(
     plannerScenarioReducer,
     undefined,
@@ -367,6 +369,25 @@ export function PlannerPage() {
                 Find monthly kWh on a recent bill. Do not enter the bill amount.
               </small>
             </label>
+
+            <details className="planner-bill-finder">
+              <summary>
+                <Info size={18} weight="duotone" aria-hidden="true" />
+                Where do I find the right number?
+              </summary>
+              <div>
+                <p>
+                  Look for the energy-use figure measured in <strong>kWh</strong>
+                  on a completed electricity bill. It may sit near the usage,
+                  consumption, or billing-period summary.
+                </p>
+                <ul>
+                  <li>Use the kWh total for one completed billing period.</li>
+                  <li>Do not use the dollar amount, account number, meter number, or balance.</li>
+                  <li>If use changes through the year, add several kWh totals below instead of guessing one average.</li>
+                </ul>
+              </div>
+            </details>
 
             <details className="essential-load-builder bill-history-builder">
               <summary>
@@ -1012,9 +1033,15 @@ export function PlannerPage() {
                 state={{ planner: activeTransfer }}
               >
                 <FileText size={18} aria-hidden="true" />
-                Add to Project Pack
+                {updateProjectPack ? "Update Project Pack" : "Add to Project Pack"}
               </Link>
             </div>
+            {updateProjectPack ? (
+              <p className="planner-share-status" role="status">
+                This educational range can update your existing private Project
+                Pack. Nothing is sent to Matken.
+              </p>
+            ) : null}
             {linkStatus ? (
               <p className="planner-share-status" role="status">
                 {linkStatus}

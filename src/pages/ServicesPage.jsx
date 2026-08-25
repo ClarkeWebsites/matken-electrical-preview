@@ -1,10 +1,12 @@
 import {
   ArrowRight,
   Check,
+  Copy,
   HardHat,
   Plug,
   Sun,
 } from "@phosphor-icons/react";
+import { useState } from "react";
 import { Link, Navigate, useParams } from "react-router";
 import { OptimizedImage } from "../components/OptimizedImage.jsx";
 import { services } from "../data/site.js";
@@ -14,6 +16,15 @@ const serviceIcons = {
   electrical: Plug,
   construction: HardHat,
 };
+
+const serviceQuestionText = (service) =>
+  [
+    `MATKEN ${service.label.toUpperCase()} — PREPARATION QUESTIONS`,
+    "",
+    ...service.questions.map((question) => `- ${question}`),
+    "",
+    "These are planning prompts only. They do not establish a quote, diagnosis, final scope, or appointment.",
+  ].join("\n");
 
 export function ServicesOverviewPage() {
   return (
@@ -118,6 +129,18 @@ export function ServiceDetailPage() {
 
   const Icon = serviceIcons[service.slug];
   const otherServices = services.filter((item) => item.slug !== service.slug);
+  const [questionStatus, setQuestionStatus] = useState("");
+
+  const copyQuestions = async () => {
+    try {
+      await navigator.clipboard.writeText(serviceQuestionText(service));
+      setQuestionStatus("Preparation questions copied. No details were sent to Matken.");
+    } catch {
+      setQuestionStatus(
+        "The questions could not be copied automatically. Use the request or Project Blueprint to keep them together.",
+      );
+    }
+  };
 
   return (
     <>
@@ -146,6 +169,10 @@ export function ServiceDetailPage() {
                   Call (876) 568-2616
                 </a>
               )}
+              <Link className="text-link" to="/" state={{ startBlueprint: true }}>
+                Build a private project blueprint
+                <ArrowRight size={18} weight="bold" aria-hidden="true" />
+              </Link>
             </div>
           </div>
           <div className="service-detail-media">
@@ -175,6 +202,17 @@ export function ServiceDetailPage() {
               <h3>{question}</h3>
             </article>
           ))}
+        </div>
+        <div className="shell service-question-actions">
+          <button type="button" onClick={copyQuestions}>
+            <Copy size={17} aria-hidden="true" />
+            Copy preparation questions
+          </button>
+          {questionStatus ? (
+            <p role="status" aria-live="polite">
+              {questionStatus}
+            </p>
+          ) : null}
         </div>
       </section>
 
