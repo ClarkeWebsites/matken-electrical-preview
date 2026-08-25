@@ -319,14 +319,19 @@ export function HomePage() {
                   <div>
                     <h3>{service.label}</h3>
                     <p>{service.summary}</p>
+                    <ul className="service-path-summary">
+                      {service.pathways.slice(0, 2).map((pathway) => (
+                        <li key={pathway}>{pathway}</li>
+                      ))}
+                    </ul>
+                    <Link
+                      className="service-panel-link"
+                      to={`/services/${service.slug}`}
+                    >
+                      Explore {service.shortLabel}
+                      <ArrowRight size={17} weight="bold" aria-hidden="true" />
+                    </Link>
                   </div>
-                  <Link
-                    className="round-link"
-                    to={`/services/${service.slug}`}
-                    aria-label={`Explore ${service.label}`}
-                  >
-                    <ArrowRight size={20} weight="bold" aria-hidden="true" />
-                  </Link>
                 </article>
               );
             })}

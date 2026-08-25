@@ -310,7 +310,7 @@ export function SiteLayout() {
             </button>
             <a className="header-call" href={`tel:${business.phoneHref}`}>
               <Phone size={17} weight="fill" aria-hidden="true" />
-              Call
+              Call {business.phoneDisplay}
             </a>
             <Link className="button button-primary button-compact" to="/request">
               Request service
