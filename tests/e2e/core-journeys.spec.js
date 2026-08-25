@@ -441,17 +441,22 @@ test.describe("Matken core customer journeys", () => {
     assertHealthy();
   });
 
-  test("keeps the project photo gallery empty until approval gates pass", async ({
+  test("publishes the approved project gallery without performance claims", async ({
     page,
   }) => {
     const assertHealthy = watchPageHealth(page);
     await openStablePage(page, "/");
     await expect(
       page.getByRole("heading", {
-        name: /Project photos stay unpublished until Matken confirms every gate/i,
+        name: /A closer look at approved project photography/i,
       }),
     ).toBeVisible();
-    await expect(page.locator(".pending-photography img")).toHaveCount(0);
+    await expect(page.locator(".approved-photo-grid img")).toHaveCount(12);
+    await page.getByRole("button", { name: /View all 129 approved photos/i }).click();
+    await expect(page.locator(".approved-photo-grid img")).toHaveCount(129);
+    await expect(
+      page.getByText(/without unverified project specifications, outcomes, or performance claims/i),
+    ).toBeVisible();
     assertHealthy();
   });
 

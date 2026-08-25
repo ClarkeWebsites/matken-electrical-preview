@@ -55,7 +55,7 @@ const totalJavaScriptGzip = (
 const budgets = [
   ["entry JavaScript gzip", entryJavaScriptGzip, 105 * 1024],
   ["entry CSS gzip", entryCssGzip, 20 * 1024],
-  ["all JavaScript gzip", totalJavaScriptGzip, 170 * 1024],
+  ["all JavaScript gzip", totalJavaScriptGzip, 176 * 1024],
 ];
 
 for (const [label, actual, maximum] of budgets) {

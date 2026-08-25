@@ -483,9 +483,22 @@ describe("Matken customer journeys", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
-        name: /Project photos stay unpublished until Matken confirms every gate/i,
+        name: /A closer look at approved project photography/i,
       }),
     ).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("img", {
+        name: /Approved Matken project photograph/i,
+      }),
+    ).toHaveLength(12);
+    await user.click(
+      screen.getByRole("button", { name: /View all 129 approved photos/i }),
+    );
+    expect(
+      screen.getAllByRole("img", {
+        name: /Approved Matken project photograph/i,
+      }),
+    ).toHaveLength(129);
     expect(
       screen.getByText(/Is the phone number on this website live/i),
     ).toBeInTheDocument();

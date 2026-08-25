@@ -20,6 +20,7 @@
     "test:sites": "node --test tests/sites-worker.test.mjs",
     "audit:lighthouse": "npm run build:pages && node tests/e2e/run-lighthouse.mjs",
     "check:bundle": "node scripts/check-bundle-budget.mjs",
+    "photos:publish": "node scripts/publish-approved-project-photos.mjs",
     "verify": "node scripts/verify-site.mjs"
   },
   "dependencies": {

@@ -6,6 +6,37 @@
   src: url("/assets/fonts/dm-sans-variable.woff2") format("woff2");
 }
 
+.approved-project-gallery .button {
+  margin-top: 28px;
+}
+
+.approved-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.approved-photo-grid figure {
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  margin: 0;
+  border-radius: 18px;
+  background: var(--sand);
+}
+
+.approved-photo-grid img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (max-width: 760px) {
+  .approved-photo-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+}
+
 @font-face {
   font-family: "Manrope";
   font-style: normal;
