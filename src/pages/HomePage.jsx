@@ -1,19 +1,17 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import {
   ArrowRight,
-  Buildings,
   Check,
   ClipboardText,
   HardHat,
-  House,
   MapTrifold,
   Phone,
   Plug,
   Sun,
-  Wrench,
 } from "@phosphor-icons/react";
 import { Link, useLocation } from "react-router";
 import { OptimizedImage } from "../components/OptimizedImage.jsx";
+import { publicAssetUrl } from "../lib/appUrl.js";
 import {
   business,
   faqs,
@@ -198,6 +196,7 @@ export function HomePage() {
       <section className="home-hero">
         <div className="shell hero-grid">
           <div className="hero-copy">
+            <span className="section-index">Electrical · Solar & storage · Construction</span>
             <h1>Power, projects, and next steps—made clearer.</h1>
             <p>
               Explore electrical, solar, and construction pathways built
@@ -205,10 +204,6 @@ export function HomePage() {
               spaces.
             </p>
             <div className="hero-actions">
-              <Link className="button button-primary" to="/request">
-                Prepare a request
-                <ArrowRight size={19} weight="bold" aria-hidden="true" />
-              </Link>
               <a
                 className="button button-dark"
                 href={`tel:${business.phoneHref}`}
@@ -216,36 +211,27 @@ export function HomePage() {
                 <Phone size={18} weight="fill" aria-hidden="true" />
                 Call {business.phoneDisplay}
               </a>
+              <Link className="button button-primary" to="/request">
+                Prepare a request
+                <ArrowRight size={19} weight="bold" aria-hidden="true" />
+              </Link>
               <Link className="text-link" to="/services">
                 Explore services
                 <ArrowRight size={18} weight="bold" aria-hidden="true" />
               </Link>
             </div>
             <p className="hero-live-line">{liveContactTruth}</p>
-            <div className="hero-proof" aria-label="Matken service overview">
-              <div>
-                <House size={20} aria-hidden="true" />
-                <span>Homes</span>
-              </div>
-              <div>
-                <Buildings size={20} aria-hidden="true" />
-                <span>Businesses</span>
-              </div>
-              <div>
-                <Wrench size={20} aria-hidden="true" />
-                <span>Project coordination</span>
-              </div>
-            </div>
           </div>
           <div className="hero-media">
-            <OptimizedImage
-              src="/assets/matken-hero-solar.jpg"
-              alt="Representative solar panels installed on residential rooftops"
-              eager
-              sizes="(max-width: 920px) 100vw, 52vw"
+            <img
+              src={publicAssetUrl("/assets/projects/img-20260824-wa0000.webp")}
+              alt="Approved aerial project photograph showing a rooftop solar installation"
+              width="1440"
+              height="810"
+              fetchPriority="high"
             />
             <span className="image-disclosure">
-              Representative editorial image
+              Client-approved project photography
             </span>
             <div className="hero-callout">
               <Sun size={25} weight="duotone" aria-hidden="true" />
@@ -321,6 +307,11 @@ export function HomePage() {
                   className={`service-feature accent-${service.accent}`}
                   key={service.slug}
                 >
+                  <OptimizedImage
+                    src={service.image}
+                    alt={service.imageAlt}
+                    sizes="(max-width: 680px) 100vw, (max-width: 920px) 50vw, 33vw"
+                  />
                   <span className="service-number">0{index + 1}</span>
                   <div className="service-icon">
                     <Icon size={28} weight="duotone" aria-hidden="true" />

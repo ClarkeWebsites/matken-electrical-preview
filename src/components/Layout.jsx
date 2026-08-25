@@ -12,7 +12,6 @@ import {
   List,
   MagnifyingGlass,
   Phone,
-  Receipt,
   X,
 } from "@phosphor-icons/react";
 import { Link, NavLink, Outlet, useLocation } from "react-router";
@@ -309,10 +308,10 @@ export function SiteLayout() {
               <span>Search</span>
               <kbd>/</kbd>
             </button>
-            <Link className="invoice-link" to="/pay-invoice">
-              <Receipt size={18} aria-hidden="true" />
-              Pay invoice
-            </Link>
+            <a className="header-call" href={`tel:${business.phoneHref}`}>
+              <Phone size={17} weight="fill" aria-hidden="true" />
+              Call
+            </a>
             <Link className="button button-primary button-compact" to="/request">
               Request service
               <ArrowRight size={17} weight="bold" aria-hidden="true" />
