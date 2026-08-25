@@ -10,6 +10,7 @@ import {
 } from "@phosphor-icons/react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router";
+import "./StatusPage.css";
 import {
   lookupProjectStatus,
   projectStatusStages,
