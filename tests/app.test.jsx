@@ -497,6 +497,20 @@ describe("Matken customer journeys", () => {
       })[0],
     ).toHaveAttribute("src", "/assets/projects/img-20260824-wa0000.webp");
     await user.click(
+      screen.getByRole("button", {
+        name: /Open Approved Matken project photograph 004/i,
+      }),
+    );
+    expect(
+      screen.getByRole("dialog", { name: /Photo 1 of 129/i }),
+    ).toBeInTheDocument();
+    await user.keyboard("{ArrowRight}");
+    expect(
+      screen.getByRole("dialog", { name: /Photo 2 of 129/i }),
+    ).toBeInTheDocument();
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await user.click(
       screen.getByRole("button", { name: /View all 129 approved photos/i }),
     );
     expect(
