@@ -7372,7 +7372,7 @@ input[type="range"]::-webkit-slider-thumb {
 .service-feature .service-number {
   order: 0;
   margin-bottom: 12px;
-  color: var(--red);
+  color: #ff7d85;
 }
 
 .service-feature .service-icon {

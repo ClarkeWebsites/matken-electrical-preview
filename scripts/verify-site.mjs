@@ -35,6 +35,7 @@ const requiredFiles = [
   "public/assets/optimized/service-construction-640.webp",
   "public/assets/optimized/service-construction-960.webp",
   "public/assets/optimized/service-construction-1440.webp",
+  "public/assets/optimized/matken-project-hero-960.webp",
   "public/assets/matken-contact.vcf",
   "public/assets/brand/matken-logo-horizontal.svg",
   "public/assets/brand/matken-logo-wordmark.svg",

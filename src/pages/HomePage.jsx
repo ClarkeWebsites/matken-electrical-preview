@@ -11,7 +11,6 @@ import {
 } from "@phosphor-icons/react";
 import { Link, useLocation } from "react-router";
 import { OptimizedImage } from "../components/OptimizedImage.jsx";
-import { publicAssetUrl } from "../lib/appUrl.js";
 import {
   business,
   faqs,
@@ -258,12 +257,11 @@ export function HomePage() {
             <p className="hero-live-line">{liveContactTruth}</p>
           </div>
           <div className="hero-media">
-            <img
-              src={publicAssetUrl("/assets/projects/img-20260824-wa0000.webp")}
+            <OptimizedImage
+              src="/assets/projects/img-20260824-wa0000.webp"
               alt="Approved aerial project photograph showing a rooftop solar installation"
-              width="1440"
-              height="810"
-              fetchPriority="high"
+              eager
+              sizes="(max-width: 920px) 100vw, 54vw"
             />
             <span className="image-disclosure">
               Client-approved project photography

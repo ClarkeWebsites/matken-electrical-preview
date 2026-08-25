@@ -55,6 +55,24 @@ const imageVariants = Object.freeze({
       }),
     ]),
   }),
+  "/assets/projects/img-20260824-wa0000.webp": Object.freeze({
+    width: 1440,
+    height: 810,
+    sources: Object.freeze([
+      Object.freeze({
+        src: "/assets/projects/thumbs/img-20260824-wa0000.webp",
+        width: 640,
+      }),
+      Object.freeze({
+        src: "/assets/optimized/matken-project-hero-960.webp",
+        width: 960,
+      }),
+      Object.freeze({
+        src: "/assets/projects/img-20260824-wa0000.webp",
+        width: 1440,
+      }),
+    ]),
+  }),
 });
 
 export function OptimizedImage({

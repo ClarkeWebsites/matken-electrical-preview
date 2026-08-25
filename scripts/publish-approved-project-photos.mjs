@@ -7,6 +7,7 @@ const workspaceRoot = process.cwd();
 const sourceDirectory = join(workspaceRoot, "pictures and videos");
 const outputDirectory = join(workspaceRoot, "public", "assets", "projects");
 const thumbnailDirectory = join(outputDirectory, "thumbs");
+const optimizedAssetDirectory = join(workspaceRoot, "public", "assets", "optimized");
 const dataFile = join(workspaceRoot, "src", "data", "approvedProjectPhotos.js");
 const supportedExtensions = /\.(?:jpe?g|heic|heif)$/i;
 const temporaryDirectory = join(tmpdir(), `matken-project-photos-${process.pid}`);
@@ -24,6 +25,7 @@ const featuredFilenames = new Set([
   "IMG-20260824-WA0101.jpg",
   "motion_photo_1137505257620963082.jpg",
 ]);
+const homepageHeroFilename = "IMG-20260824-WA0000.jpg";
 
 const run = (command, arguments_) =>
   execFileSync(command, arguments_, { stdio: "inherit" });
@@ -44,6 +46,7 @@ if (!photoFiles.length) {
 
 mkdirSync(outputDirectory, { recursive: true });
 mkdirSync(thumbnailDirectory, { recursive: true });
+mkdirSync(optimizedAssetDirectory, { recursive: true });
 mkdirSync(temporaryDirectory, { recursive: true });
 
 try {
@@ -93,6 +96,29 @@ try {
       thumbnailOutput,
     ]);
   });
+
+  const homepageHeroJpeg = join(temporaryDirectory, "homepage-hero-960.jpg");
+  run("sips", [
+    "--resampleHeightWidthMax",
+    "960",
+    "-s",
+    "format",
+    "jpeg",
+    "-s",
+    "formatOptions",
+    "80",
+    join(sourceDirectory, homepageHeroFilename),
+    "--out",
+    homepageHeroJpeg,
+  ]);
+  run("cwebp", [
+    "-quiet",
+    "-q",
+    "76",
+    homepageHeroJpeg,
+    "-o",
+    join(optimizedAssetDirectory, "matken-project-hero-960.webp"),
+  ]);
 
   const records = photoFiles.map((filename, index) => {
     const number = String(index + 1).padStart(3, "0");
