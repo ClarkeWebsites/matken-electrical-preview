@@ -519,13 +519,20 @@ describe("Matken customer journeys", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(openingPhoto).toHaveFocus();
     await user.click(
-      screen.getByRole("button", { name: /View all 129 approved photos/i }),
+      screen.getByRole("button", {
+        name: /Show 12 more approved photos \(12 of 129\)/i,
+      }),
     );
     expect(
       screen.getAllByRole("img", {
         name: /Approved Matken project photograph/i,
       }),
-    ).toHaveLength(129);
+    ).toHaveLength(24);
+    expect(
+      screen.getByRole("button", {
+        name: /Show 12 more approved photos \(24 of 129\)/i,
+      }),
+    ).toBeInTheDocument();
     expect(
       screen.getByText(/Is the phone number on this website live/i),
     ).toBeInTheDocument();

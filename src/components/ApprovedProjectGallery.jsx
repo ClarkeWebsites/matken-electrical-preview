@@ -3,6 +3,7 @@ import { approvedProjectPhotos } from "../data/approvedProjectPhotos.js";
 import { publicAssetUrl } from "../lib/appUrl.js";
 
 const initialPhotoCount = 12;
+const galleryPageSize = 12;
 const featuredProjectPhotos = approvedProjectPhotos.filter(
   (photo) => photo.featured,
 );
@@ -17,14 +18,15 @@ const orderedProjectPhotos = [
 ];
 
 export function ApprovedProjectGallery() {
-  const [showAll, setShowAll] = useState(false);
+  const [visiblePhotoCount, setVisiblePhotoCount] = useState(
+    initialPhotoCount,
+  );
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
   const closeButtonRef = useRef(null);
   const dialogRef = useRef(null);
   const openingTriggerRef = useRef(null);
-  const visiblePhotos = showAll
-    ? orderedProjectPhotos
-    : initialProjectPhotos;
+  const visiblePhotos = orderedProjectPhotos.slice(0, visiblePhotoCount);
+  const hasMorePhotos = visiblePhotoCount < orderedProjectPhotos.length;
   const selectedPhoto =
     selectedPhotoIndex === null
       ? null
@@ -127,14 +129,22 @@ export function ApprovedProjectGallery() {
             </figure>
           ))}
         </div>
-        {!showAll ? (
+        {hasMorePhotos ? (
           <button
             className="button button-primary"
             type="button"
-            onClick={() => setShowAll(true)}
-            aria-expanded="false"
+            onClick={() =>
+              setVisiblePhotoCount((count) =>
+                Math.min(count + galleryPageSize, orderedProjectPhotos.length),
+              )
+            }
           >
-            View all {approvedProjectPhotos.length} approved photos
+            Show{" "}
+            {Math.min(
+              galleryPageSize,
+              orderedProjectPhotos.length - visiblePhotoCount,
+            )}{" "}
+            more approved photos ({visiblePhotoCount} of {approvedProjectPhotos.length})
           </button>
         ) : null}
       </div>

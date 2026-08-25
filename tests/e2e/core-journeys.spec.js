@@ -469,8 +469,17 @@ test.describe("Matken core customer journeys", () => {
         name: /Open Approved Matken project photograph 004/i,
       }),
     ).toBeFocused();
-    await page.getByRole("button", { name: /View all 129 approved photos/i }).click();
-    await expect(page.locator(".approved-photo-grid img")).toHaveCount(129);
+    await page
+      .getByRole("button", {
+        name: /Show 12 more approved photos \(12 of 129\)/i,
+      })
+      .click();
+    await expect(page.locator(".approved-photo-grid img")).toHaveCount(24);
+    await expect(
+      page.getByRole("button", {
+        name: /Show 12 more approved photos \(24 of 129\)/i,
+      }),
+    ).toBeVisible();
     await expect(
       page.getByText(/without unverified project specifications, outcomes, or performance claims/i),
     ).toBeVisible();
