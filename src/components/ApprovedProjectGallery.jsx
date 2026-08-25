@@ -20,6 +20,8 @@ export function ApprovedProjectGallery() {
   const [showAll, setShowAll] = useState(false);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
   const closeButtonRef = useRef(null);
+  const dialogRef = useRef(null);
+  const openingTriggerRef = useRef(null);
   const visiblePhotos = showAll
     ? orderedProjectPhotos
     : initialProjectPhotos;
@@ -28,12 +30,19 @@ export function ApprovedProjectGallery() {
       ? null
       : orderedProjectPhotos[selectedPhotoIndex];
 
+  const closeViewer = () => {
+    openingTriggerRef.current?.focus();
+    setSelectedPhotoIndex(null);
+  };
+
   useEffect(() => {
     if (selectedPhotoIndex === null) return undefined;
 
     const onKeyDown = (event) => {
       if (event.key === "Escape") {
-        setSelectedPhotoIndex(null);
+        event.preventDefault();
+        closeViewer();
+        return;
       }
       if (event.key === "ArrowLeft") {
         setSelectedPhotoIndex(
@@ -46,6 +55,19 @@ export function ApprovedProjectGallery() {
         setSelectedPhotoIndex(
           (index) => (index + 1) % orderedProjectPhotos.length,
         );
+      }
+      if (event.key === "Tab") {
+        const focusable = dialogRef.current?.querySelectorAll("button");
+        if (!focusable?.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
       }
     };
 
@@ -87,9 +109,10 @@ export function ApprovedProjectGallery() {
               <button
                 className="gallery-photo-trigger"
                 type="button"
-                onClick={() =>
-                  setSelectedPhotoIndex(orderedProjectPhotos.indexOf(photo))
-                }
+                onClick={(event) => {
+                  openingTriggerRef.current = event.currentTarget;
+                  setSelectedPhotoIndex(orderedProjectPhotos.indexOf(photo));
+                }}
                 aria-label={`Open ${photo.alt}`}
               >
                 <img
@@ -118,6 +141,7 @@ export function ApprovedProjectGallery() {
       {selectedPhoto ? (
         <div className="gallery-photo-viewer" role="presentation">
           <div
+            ref={dialogRef}
             className="gallery-photo-dialog"
             role="dialog"
             aria-modal="true"
@@ -130,7 +154,7 @@ export function ApprovedProjectGallery() {
               <button
                 ref={closeButtonRef}
                 type="button"
-                onClick={() => setSelectedPhotoIndex(null)}
+                onClick={closeViewer}
                 aria-label="Close photo viewer"
               >
                 ×
