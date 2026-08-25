@@ -302,6 +302,7 @@ export function SiteLayout() {
               aria-keyshortcuts="/ Control+K Meta+K"
               onClick={openSearch}
               onPointerEnter={warmSiteSearchDialog}
+              onPointerDown={warmSiteSearchDialog}
               onFocus={warmSiteSearchDialog}
             >
               <MagnifyingGlass size={18} weight="bold" aria-hidden="true" />
