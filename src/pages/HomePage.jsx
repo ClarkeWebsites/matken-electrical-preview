@@ -331,6 +331,12 @@ export function HomePage() {
                       Explore {service.shortLabel}
                       <ArrowRight size={17} weight="bold" aria-hidden="true" />
                     </Link>
+                    <Link
+                      className="button button-primary button-compact"
+                      to={`/request?service=${service.slug}`}
+                    >
+                      Prepare a request
+                    </Link>
                   </div>
                 </article>
               );
